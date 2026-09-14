@@ -1,0 +1,321 @@
+<meta charset="utf-8">
+<title>Grail Slab Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ground:#f4f3ee; --panel:#ffffff; --panel2:#ecebe4; --line:#d9d6cb; --line2:#c4c0b2;
+  --ink:#15161a; --ink2:#4f5158; --ink3:#83858d;
+  --gold:#8f6f12; --gold-soft:#f1e6c2; --gold-ink:#5d4708;
+  --good:#1f8a4c; --good-soft:#dcf1e4; --bad:#c23b32; --bad-soft:#f7dedb; --warn:#a86a00; --warn-soft:#f6e9cf;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --grid:#e6e4dc;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0e0f12; --panel:#16181d; --panel2:#1d2026; --line:#2a2e36; --line2:#3a3f49;
+    --ink:#ece9e1; --ink2:#b0aea6; --ink3:#7c7e86;
+    --gold:#d9b04c; --gold-soft:#2b2510; --gold-ink:#f0d283;
+    --good:#3ccb7a; --good-soft:#12301f; --bad:#ef6a60; --bad-soft:#3a1c19; --warn:#e2a231; --warn-soft:#332913;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+    --grid:#23262d;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0e0f12; --panel:#16181d; --panel2:#1d2026; --line:#2a2e36; --line2:#3a3f49;
+  --ink:#ece9e1; --ink2:#b0aea6; --ink3:#7c7e86;
+  --gold:#d9b04c; --gold-soft:#2b2510; --gold-ink:#f0d283;
+  --good:#3ccb7a; --good-soft:#12301f; --bad:#ef6a60; --bad-soft:#3a1c19; --warn:#e2a231; --warn-soft:#332913;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --grid:#23262d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;font-size:15px;line-height:1.5;padding-inline:clamp(16px,4vw,48px);padding-block:0 64px}
+h1,h2,h3{font-family:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,5vw,58px);font-weight:800;letter-spacing:-.02em;line-height:1}
+h2{font-size:clamp(22px,2.6vw,30px);font-weight:700;letter-spacing:-.01em}
+h3{font-size:17px;font-weight:700}
+.mono,td.num,th.num,.kpi b,.tag{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--gold);text-decoration:none;border-bottom:1px solid transparent}
+a:hover{border-bottom-color:var(--gold)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.wrap{max-width:1280px;margin:0 auto}
+/* masthead */
+.mast{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;padding-block:36px 20px;border-bottom:2px solid var(--ink)}
+.mast p{max-width:62ch;color:var(--ink2);margin:10px 0 0}
+.slab{border:1px solid var(--line2);background:var(--panel);padding:10px 14px;display:grid;gap:2px;min-width:230px}
+.slab .eyebrow{color:var(--gold)}
+.slab div{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink2)}
+nav.toc{position:sticky;top:0;z-index:5;background:var(--ground);border-bottom:1px solid var(--line);display:flex;gap:4px;overflow-x:auto;padding-block:8px;margin-bottom:28px}
+nav.toc a{white-space:nowrap;padding:6px 10px;font-size:13px;color:var(--ink2);border:1px solid transparent;border-radius:3px}
+nav.toc a:hover{background:var(--panel2);color:var(--ink);border-bottom-color:transparent}
+section{margin-block:44px}
+.sec-head{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;margin-bottom:6px}
+.sec-head .q{color:var(--ink2);font-size:15px;max-width:70ch}
+.lede{color:var(--ink2);max-width:70ch;margin:0 0 18px}
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-block:18px}
+.kpi{background:var(--panel);padding:14px 16px;display:grid;gap:4px;align-content:start}
+.kpi .eyebrow{font-size:10px}
+.kpi b{font-size:26px;font-weight:500;line-height:1.1}
+.kpi small{color:var(--ink3);font-size:12px}
+.kpi.hero b{color:var(--gold)}
+.kpi.good b{color:var(--good)} .kpi.bad b{color:var(--bad)}
+/* grid & panels */
+.grid{display:grid;gap:18px;grid-template-columns:repeat(12,1fr)}
+.c6{grid-column:span 6} .c4{grid-column:span 4} .c8{grid-column:span 8} .c12{grid-column:span 12} .c5{grid-column:span 5} .c7{grid-column:span 7}
+@media (max-width:900px){.c6,.c4,.c8,.c5,.c7{grid-column:span 12} .mast{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px 18px;min-width:0}
+.panel h3{margin-bottom:2px}
+.panel .sub{color:var(--ink3);font-size:12.5px;margin:0 0 12px}
+.chart{position:relative;height:280px}
+.chart.tall{height:360px}
+/* tables */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}
+th{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:500;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--panel)}
+th.sorted{color:var(--gold)}
+td.num,th.num{text-align:right}
+tr:hover td{background:var(--panel2)}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+.tag{display:inline-block;font-size:10.5px;padding:1px 6px;border:1px solid var(--line2);border-radius:2px;color:var(--ink2);letter-spacing:.03em}
+.tag.gold{border-color:var(--gold);color:var(--gold-ink);background:var(--gold-soft)}
+.tag.good{border-color:var(--good);color:var(--good);background:var(--good-soft)}
+.tag.bad{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
+.tag.warn{border-color:var(--warn);color:var(--warn);background:var(--warn-soft)}
+.bar{display:inline-block;height:8px;background:var(--gold);vertical-align:middle;margin-right:6px;border-radius:1px}
+.bar.b1{background:var(--s1)} .bar.b2{background:var(--s2)} .bar.b3{background:var(--s3)} .bar.b4{background:var(--s4)} .bar.b5{background:var(--s5)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+input[type=search],select,button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:3px}
+button{cursor:pointer}
+button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);font-weight:600}
+.note{font-size:12.5px;color:var(--ink3)}
+.meth dt{font-weight:600;margin-top:10px} .meth dd{margin:2px 0 0;color:var(--ink2);max-width:80ch}
+.addr{font-family:"IBM Plex Mono",monospace;font-size:12px}
+.callout{border-left:3px solid var(--gold);background:var(--gold-soft);padding:10px 14px;margin:14px 0;color:var(--ink);max-width:80ch}
+.callout b{color:var(--gold-ink)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="mast">
+  <div>
+    <div class="eyebrow">Grail · Base · every token pool, every swap, every pack</div>
+    <h1>Grail Slab Report</h1>
+    <p>Who actually made money on Grail's card-backed tokens, whether they came through the Grail app or an aggregator, who vaulted real cards, and what G-list wallets did with their exclusive launch mints. Built from raw on-chain logs, no Grail back-end data.</p>
+  </div>
+  <div class="slab">
+    <span class="eyebrow">Data window</span>
+    <div id="meta-window">—</div>
+    <div id="meta-tokens">—</div>
+    <div id="meta-gen">—</div>
+  </div>
+</header>
+<nav class="toc" aria-label="Sections">
+  <a href="#overview">Overview</a><a href="#profit">Who made money</a><a href="#venues">Grail app vs routers</a><a href="#packs">Packs &amp; exclusive mints</a><a href="#vault">Card vaulting</a><a href="#snipers">Snipers</a><a href="#glist">G-list wallets</a><a href="#method">How it's counted</a>
+</nav>
+
+<section id="overview">
+  <div class="sec-head"><h2>Overview</h2><span class="q">All 26 Grail tokens, all-time.</span></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid">
+    <div class="panel c8"><h3>Daily volume and traders</h3><p class="sub">USDC through the Uniswap pools per day; new traders are wallets making their first-ever Grail swap that day.</p><div class="chart tall"><canvas id="c-daily"></canvas></div></div>
+    <div class="panel c4"><h3>Tokens by volume</h3><p class="sub">All-time USDC volume and unique traders.</p><div class="tbl" style="max-height:380px;overflow:auto"><table id="t-tokens"></table></div></div>
+  </div>
+</section>
+
+<section id="profit">
+  <div class="sec-head"><h2>Who made money?</h2><span class="q">Realized + unrealized P&amp;L per wallet, average-cost basis, bots excluded. Pack redemptions carry the pack price as cost; airdropped or transferred-in tokens are priced at the market when received.</span></div>
+  <div class="kpis" id="kpis-profit"></div>
+  <div class="grid">
+    <div class="panel c5"><h3>P&amp;L distribution</h3><p class="sub">Traders per total P&amp;L bucket.</p><div class="chart"><canvas id="c-pnl"></canvas></div></div>
+    <div class="panel c7"><h3>Share profitable by where they trade</h3><p class="sub">Primary venue group of each trader (where most of their swaps went).</p><div class="chart"><canvas id="c-profit-group"></canvas></div></div>
+    <div class="panel c6"><h3>Grail-app users vs everyone else</h3><p class="sub">Wallets split by whether any / all / none of their swaps went through the Grail app.</p><div class="tbl"><table id="t-usage"></table></div></div>
+    <div class="panel c6"><h3>Profitability by venue</h3><p class="sub">Primary venue, traders, share in profit, median P&amp;L.</p><div class="tbl" style="max-height:340px;overflow:auto"><table id="t-profit-venue"></table></div></div>
+    <div class="panel c12"><h3>Profitability by token</h3><p class="sub">Per token, wallets that bought it at least once. Share in profit uses realized + unrealized at current price.</p><div class="tbl"><table id="t-profit-token"></table></div></div>
+    <div class="panel c6"><h3>Biggest winners</h3><p class="sub">Top 25 wallets by total P&amp;L.</p><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-winners"></table></div></div>
+    <div class="panel c6"><h3>Biggest losers</h3><p class="sub">Bottom 25 wallets by total P&amp;L.</p><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-losers"></table></div></div>
+  </div>
+</section>
+
+<section id="venues">
+  <div class="sec-head"><h2>Grail app or router aggregator?</h2><span class="q">Venue = the first contract the wallet's transaction called. All liquidity is Uniswap V3, so this measures front-ends, not exchanges.</span></div>
+  <div class="grid">
+    <div class="panel c4"><h3>Volume by venue group</h3><p class="sub">Share of USDC volume.</p><div class="chart"><canvas id="c-group-vol"></canvas></div></div>
+    <div class="panel c4"><h3>Traders by venue group</h3><p class="sub">Unique wallets by primary group.</p><div class="chart"><canvas id="c-group-traders"></canvas></div></div>
+    <div class="panel c4"><h3>Holders by venue group</h3><p class="sub">Wallets holding any token now, by where they trade.</p><div class="chart"><canvas id="c-group-holders"></canvas></div></div>
+    <div class="panel c12"><h3>Weekly volume by venue group</h3><p class="sub">Stacked USDC volume per week.</p><div class="chart tall"><canvas id="c-weekly"></canvas></div></div>
+    <div class="panel c12"><h3>Every venue</h3><p class="sub">Swaps, volume, unique traders.</p><div class="tbl"><table id="t-venues"></table></div></div>
+  </div>
+</section>
+
+<section id="packs">
+  <div class="sec-head"><h2>Packs and exclusive mints</h2><span class="q">Gated LAUNCH and FOUNDER packs (gVITALIK, gELON, gKAI, gALLEN, gCOOP, gKIRK, gSWIFT, Founder) are the exclusive mints. General packs like 100x and Young Kings are shown for scale only.</span></div>
+  <div class="kpis" id="kpis-packs"></div>
+  <div class="grid">
+    <div class="panel c12"><h3>Exclusive mint cohorts: did they redeem, did they sell?</h3><p class="sub">Per gated pack: buyers, how many redeemed the card into tokens, how many sold, how many dumped 90%+ of what they redeemed, and how fast.</p><div class="tbl"><table id="t-cohorts"></table></div></div>
+    <div class="panel c5"><h3>Time from redeem to first sell</h3><p class="sub">Gated-pack buyers who sold.</p><div class="chart"><canvas id="c-hours"></canvas></div></div>
+    <div class="panel c7"><h3>All pack series</h3><p class="sub">On-chain purchases via the Grail executor.</p><div class="tbl" style="max-height:330px;overflow:auto"><table id="t-packs"></table></div></div>
+    <div class="panel c12"><h3>Exclusive mint buyers, wallet by wallet</h3><p class="sub">Filter by pack. Sold % is tokens sold ÷ tokens redeemed. ROI counts sale proceeds plus what they still hold at current price against pack cost.</p>
+      <div class="controls"><select id="f-cohort"></select><input type="search" id="s-cohort" placeholder="search wallet"><span class="note" id="n-cohort"></span></div>
+      <div class="tbl" style="max-height:520px;overflow:auto"><table id="t-cohort-rows"></table></div></div>
+  </div>
+</section>
+
+<section id="vault">
+  <div class="sec-head"><h2>Who vaulted their own cards?</h2><span class="q">Every physical card entering the vault mints tokens (the reserve's tokens-per-card, usually 10,000) straight to the submitter's wallet. If the recipient is Grail's inventory contract, team wallet or another Grail address, Grail vaulted the card itself; anyone else is a user vaulting a card.</span></div>
+  <div class="kpis" id="kpis-vault"></div>
+  <div class="callout" id="vault-callout"></div>
+  <div class="grid">
+    <div class="panel c6"><h3>Cards entering the vault per month</h3><p class="sub">From ERC-20 mint events, split by who received the tokens.</p><div class="chart"><canvas id="c-vault-monthly"></canvas></div></div>
+    <div class="panel c6"><h3>User vaulters by token</h3><div class="tbl"><table id="t-vault-token"></table></div></div>
+    <div class="panel c12"><h3>Every user card mint</h3><p class="sub">Whether the wallet sold that token after the mint, and what it still holds.</p><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-vault-rows"></table></div></div>
+    <div class="panel c5"><h3>Vault registry (grail.xyz reserves)</h3><p class="sub">Physical cards backing each token per Grail's own reserves API, with tokens per card and PSA population.</p><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-reserves"></table></div></div>
+    <div class="panel c7"><h3>Physical redemptions (burns)</h3><p class="sub">Burning a full card's worth of tokens mints a claim NFT to the redeemer; sending it to Grail submits the claim. Grail burns the claim when the card ships, or burns it and re-mints the tokens if the redemption is cancelled. Each row traces where the tokens came from and how the claim ended.</p><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-burns"></table></div></div>
+  </div>
+</section>
+
+<section id="snipers">
+  <div class="sec-head"><h2>Snipers</h2><span class="q">A snipe is a first buy within 5 minutes (150 blocks) of a pool's first liquidity. Sniper = 2+ tokens or a same-block buy; serial sniper = 3+ tokens or 2+ same-block buys.</span></div>
+  <div class="kpis" id="kpis-snipers"></div>
+  <div class="grid">
+    <div class="panel c5"><h3>Snipes per token</h3><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-sniper-token"></table></div></div>
+    <div class="panel c7"><h3>Tagged wallets</h3><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-sniper-rows"></table></div></div>
+  </div>
+</section>
+
+<section id="glist">
+  <div class="sec-head"><h2>G-list wallets</h2><span class="q">Every wallet that bought a gated pack, tagged by what it did with the mint. Copy the table as CSV; a full CSV export is also attached in chat.</span></div>
+  <div class="kpis" id="kpis-glist"></div>
+  <div class="panel">
+    <div class="controls"><select id="f-glist"><option value="">All tags</option><option>Flipper</option><option>Partial seller</option><option>Holder</option><option>Unredeemed</option></select><input type="search" id="s-glist" placeholder="search wallet or pack"><button id="b-copy" class="primary">Copy as CSV</button><span class="note" id="n-glist"></span></div>
+    <div class="tbl" style="max-height:600px;overflow:auto"><table id="t-glist"></table></div>
+  </div>
+</section>
+
+<section id="method">
+  <div class="sec-head"><h2>How it's counted</h2></div>
+  <div class="panel"><dl class="meth" id="meth"></dl></div>
+</section>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = {
+  usd: v => v==null?'—':(Math.abs(v)>=1e6?'$'+(v/1e6).toFixed(2)+'M':Math.abs(v)>=1e4?'$'+(v/1e3).toFixed(1)+'K':'$'+v.toLocaleString(undefined,{maximumFractionDigits:0})),
+  usdS: v => v==null?'—':(v<0?'−':'+')+fmt.usd(Math.abs(v)),
+  n: v => v==null?'—':Math.round(v).toLocaleString(),
+  pct: v => v==null?'—':v.toFixed(1)+'%',
+  pct1: v => v==null?'—':(v*100).toFixed(0)+'%',
+  tok: v => v==null?'—':v.toLocaleString(undefined,{maximumFractionDigits:0}),
+  date: t => t?new Date(t*1000).toISOString().slice(0,10):'—',
+  hrs: h => h==null?'—':h<1?Math.round(h*60)+'m':h<48?h.toFixed(1)+'h':(h/24).toFixed(1)+'d',
+  addr: a => `<a class="addr" href="https://basescan.org/address/${a}" target="_blank" rel="noopener">${a.slice(0,6)}…${a.slice(-4)}</a>`,
+  sgn: v => v==null?'—':`<span class="${v>0?'pos':v<0?'neg':''}">${fmt.usdS(v)}</span>`
+};
+const GROUPS = ['Grail app','Fomo app','Router / aggregator','Telegram bot','Direct / MEV','Other','No swaps (pack/transfer)'];
+const GCOLOR = {'Grail app':css('--gold'),'Fomo app':css('--s1'),'Router / aggregator':css('--s3'),'Telegram bot':css('--s2'),'Direct / MEV':css('--s8'),'Other':css('--ink3'),'No swaps (pack/transfer)':css('--s7')};
+Chart.defaults.color = css('--ink2'); Chart.defaults.borderColor = css('--grid'); Chart.defaults.font.family = '"IBM Plex Sans", system-ui, sans-serif'; Chart.defaults.font.size = 12;
+const tip = {backgroundColor: css('--panel2'), titleColor: css('--ink'), bodyColor: css('--ink2'), borderColor: css('--line2'), borderWidth: 1, padding: 10};
+
+// ---- meta & KPIs
+document.getElementById('meta-window').textContent = `through block ${fmt.n(D.meta.head_block)} · ${fmt.date(D.meta.head_ts)} UTC`;
+document.getElementById('meta-tokens').textContent = `${D.meta.n_tokens} tokens · ${fmt.n(D.kpi.swaps)} swaps · ${fmt.n(D.kpi.traders)} traders`;
+document.getElementById('meta-gen').textContent = `generated ${new Date(D.meta.generated*1000).toISOString().slice(0,16).replace('T',' ')} UTC`;
+function kpis(id, items){ document.getElementById(id).innerHTML = items.map(([l,v,s,c]) => `<div class="kpi ${c||''}"><span class="eyebrow">${l}</span><b>${v}</b>${s?`<small>${s}</small>`:''}</div>`).join(''); }
+const K = D.kpi;
+kpis('kpis', [['Volume', fmt.usd(K.volume), 'all pools, all time','hero'],['Swaps', fmt.n(K.swaps), 'on-chain trades'],['Traders', fmt.n(K.traders), `${fmt.n(K.bots)} bots excluded`],['Holders', fmt.n(K.holders), 'wallets with a balance now'],['In profit', fmt.pct(K.profitable_pct), 'of traders, realized + unrealized', K.profitable_pct>=50?'good':'bad'],['Grail-app traders', fmt.n(K.grail_app_users), 'swapped through grail.xyz at least once'],['Pack buyers', fmt.n(K.pack_buyers), `${fmt.n(K.redeemers)} redeemed a card`],['Card vaulters', fmt.n(K.vaulters), 'users who vaulted a physical card'],['Snipers', fmt.n(K.snipers), 'tagged wallets']]);
+kpis('kpis-profit', [['In profit', fmt.pct(K.profitable_pct), 'realized + unrealized', K.profitable_pct>=50?'good':'bad'],['Realized profit', fmt.pct(K.realized_profitable_pct), 'share with realized P&L > 0'],['Median P&L', fmt.usdS(K.median_pnl), 'per trader', K.median_pnl>=0?'good':'bad'],['Average P&L', fmt.usdS(K.avg_pnl), 'per trader (skewed by whales)'],['Net trader P&L', fmt.usdS(K.total_trader_pnl), 'sum over all non-bot traders'],['Market cap now', fmt.usd(K.mcap), 'circulating × pool price']]);
+
+// ---- charts
+function bar(id, labels, datasets, opts={}){ return new Chart(document.getElementById(id), {type:'bar', data:{labels, datasets}, options:Object.assign({responsive:true, maintainAspectRatio:false, plugins:{legend:{display:datasets.length>1, labels:{boxWidth:10}}, tooltip:tip}, scales:{x:{grid:{display:false}}, y:{grid:{color:css('--grid')}, border:{display:false}}}}, opts)}); }
+const days = D.daily.map(d=>d.day);
+new Chart(document.getElementById('c-daily'), {data:{labels:days, datasets:[
+  {type:'bar', label:'Volume (USDC)', data:D.daily.map(d=>d.volume), backgroundColor:css('--gold'), yAxisID:'y', borderRadius:2, order:2},
+  {type:'line', label:'New traders', data:D.daily.map(d=>d.new), borderColor:css('--s1'), backgroundColor:css('--s1'), pointRadius:0, borderWidth:2, yAxisID:'y2', order:1},
+  {type:'line', label:'Returning traders', data:D.daily.map(d=>d.returning), borderColor:css('--s3'), backgroundColor:css('--s3'), pointRadius:0, borderWidth:2, yAxisID:'y2', order:1}]},
+  options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false}, plugins:{legend:{labels:{boxWidth:10}}, tooltip:Object.assign({callbacks:{label:c=>c.dataset.label+': '+(c.dataset.yAxisID==='y'?fmt.usd(c.parsed.y):fmt.n(c.parsed.y))}},tip)},
+  scales:{x:{grid:{display:false}, ticks:{maxTicksLimit:10}}, y:{position:'left', title:{display:true,text:'USDC volume'}, ticks:{callback:v=>fmt.usd(v)}, grid:{color:css('--grid')}, border:{display:false}}, y2:{position:'right', title:{display:true,text:'traders'}, grid:{drawOnChartArea:false}, border:{display:false}}}}});
+bar('c-pnl', D.pnl_hist.map(b=>b.bucket), [{label:'Traders', data:D.pnl_hist.map(b=>b.n), backgroundColor:D.pnl_hist.map(b=>b.bucket.startsWith('<')||b.bucket.startsWith('-')?css('--bad'):css('--good')), borderRadius:2}], {plugins:{legend:{display:false}, tooltip:tip}, scales:{x:{grid:{display:false}, ticks:{font:{size:10}}}, y:{grid:{color:css('--grid')}, border:{display:false}}}});
+const pg = D.profit_by_group.filter(g=>g.traders>=10).sort((a,b)=>b.traders-a.traders);
+bar('c-profit-group', pg.map(g=>g.group), [{label:'% in profit', data:pg.map(g=>g.profitable_pct), backgroundColor:pg.map(g=>GCOLOR[g.group]||css('--ink3')), borderRadius:2}], {indexAxis:'y', plugins:{legend:{display:false}, tooltip:Object.assign({callbacks:{label:c=>{const g=pg[c.dataIndex]; return `${g.profitable_pct}% of ${fmt.n(g.traders)} traders · median ${fmt.usdS(g.median_pnl)}`}}},tip)}, scales:{x:{max:100, ticks:{callback:v=>v+'%'}, grid:{color:css('--grid')}, border:{display:false}}, y:{grid:{display:false}}}});
+function groupChart(id, rows, key, val, fmtv){ const r = GROUPS.map(g=>rows.find(x=>x[key]===g)).filter(Boolean); bar(id, r.map(x=>x[key]), [{label:val, data:r.map(x=>x[val]), backgroundColor:r.map(x=>GCOLOR[x[key]]), borderRadius:2}], {indexAxis:'y', plugins:{legend:{display:false}, tooltip:Object.assign({callbacks:{label:c=>fmtv(c.parsed.x)}},tip)}, scales:{x:{ticks:{callback:fmtv}, grid:{color:css('--grid')}, border:{display:false}}, y:{grid:{display:false}, ticks:{font:{size:11}}}}}); }
+groupChart('c-group-vol', D.groups, 'group', 'volume', fmt.usd);
+groupChart('c-group-traders', D.groups, 'group', 'traders', fmt.n);
+groupChart('c-group-holders', D.holders_by_group, 'primary_group', 'holders', fmt.n);
+const W = D.weekly_group_volume;
+bar('c-weekly', W.weeks, GROUPS.filter(g=>W.series[g]).map(g=>({label:g, data:W.series[g], backgroundColor:GCOLOR[g], borderRadius:1})), {plugins:{legend:{labels:{boxWidth:10}}, tooltip:Object.assign({callbacks:{label:c=>c.dataset.label+': '+fmt.usd(c.parsed.y)}},tip)}, scales:{x:{stacked:true, grid:{display:false}}, y:{stacked:true, ticks:{callback:v=>fmt.usd(v)}, grid:{color:css('--grid')}, border:{display:false}}}});
+if (D.hours_to_sell_hist) bar('c-hours', D.hours_to_sell_hist.map(b=>b.bucket), [{label:'Wallets', data:D.hours_to_sell_hist.map(b=>b.n), backgroundColor:css('--s2'), borderRadius:2}], {plugins:{legend:{display:false}, tooltip:tip}});
+
+// ---- tables
+function table(id, cols, rows, opts={}){
+  const el = document.getElementById(id); let sortKey = opts.sort||null, dir = opts.dir||-1;
+  function render(){
+    let r = rows.slice(); if (sortKey){ r.sort((a,b)=>{const x=a[sortKey], y=b[sortKey]; if (x==null) return 1; if (y==null) return -1; return (typeof x==='number'? x-y : String(x).localeCompare(String(y)))*dir;}); }
+    if (opts.limit) r = r.slice(0, opts.limit);
+    el.innerHTML = '<thead><tr>'+cols.map(c=>`<th class="${c.num?'num':''} ${sortKey===c.k?'sorted':''}" data-k="${c.k}">${c.h}${sortKey===c.k?(dir<0?' ▾':' ▴'):''}</th>`).join('')+'</tr></thead><tbody>'+
+      r.map(row=>'<tr>'+cols.map(c=>`<td class="${c.num?'num':''}">${c.f?c.f(row[c.k],row):(row[c.k]??'—')}</td>`).join('')+'</tr>').join('')+'</tbody>';
+    el.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(sortKey===k) dir=-dir; else {sortKey=k; dir=-1;} render();});
+  }
+  render(); return {update(newRows){rows=newRows; render();}};
+}
+const maxVol = Math.max(...D.tokens.map(t=>t.volume));
+table('t-tokens', [{k:'symbol',h:'Token',f:(v,r)=>`<b>${v}</b>`},{k:'volume',h:'Volume',num:1,f:v=>`<span class="bar" style="width:${Math.max(2,60*v/maxVol)}px"></span>${fmt.usd(v)}`},{k:'traders',h:'Traders',num:1,f:fmt.n},{k:'price',h:'Price',num:1,f:v=>'$'+v.toFixed(2)}], D.tokens, {sort:'volume'});
+table('t-usage', [{k:'usage',h:'Usage'},{k:'traders',h:'Traders',num:1,f:fmt.n},{k:'profitable_pct',h:'In profit',num:1,f:v=>`<span class="bar ${v>=50?'b3':'b2'}" style="width:${v*0.8}px"></span>${fmt.pct(v)}`},{k:'median_pnl',h:'Median P&L',num:1,f:fmt.sgn},{k:'avg_pnl',h:'Avg P&L',num:1,f:fmt.sgn},{k:'volume',h:'Volume',num:1,f:fmt.usd}], D.profit_by_usage, {sort:'traders'});
+table('t-profit-venue', [{k:'venue',h:'Primary venue'},{k:'traders',h:'Traders',num:1,f:fmt.n},{k:'profitable_pct',h:'In profit',num:1,f:fmt.pct},{k:'median_pnl',h:'Median P&L',num:1,f:fmt.sgn},{k:'total_pnl',h:'Net P&L',num:1,f:fmt.sgn},{k:'volume',h:'Volume',num:1,f:fmt.usd}], D.profit_by_venue.filter(v=>v.traders>=5), {sort:'traders'});
+table('t-profit-token', [{k:'symbol',h:'Token',f:(v,r)=>`<b>${v}</b> <span class="note">${r.name}</span>`},{k:'traders',h:'Buyers',num:1,f:fmt.n},{k:'profitable_pct',h:'In profit',num:1,f:v=>`<span class="bar ${v>=50?'b3':'b2'}" style="width:${v*0.6}px"></span>${fmt.pct(v)}`},{k:'avg_pnl',h:'Avg P&L',num:1,f:fmt.sgn},{k:'total_pnl',h:'Net trader P&L',num:1,f:fmt.sgn},{k:'volume',h:'Volume',num:1,f:fmt.usd},{k:'price',h:'Price',num:1,f:v=>'$'+v.toFixed(2)}], D.profit_by_token, {sort:'volume'});
+const wcols = [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'total',h:'Total P&L',num:1,f:fmt.sgn},{k:'realized',h:'Realized',num:1,f:fmt.sgn},{k:'volume',h:'Volume',num:1,f:fmt.usd},{k:'n_swaps',h:'Swaps',num:1,f:fmt.n},{k:'primary_venue',h:'Venue'},{k:'usage',h:'Grail app?',f:v=>`<span class="tag ${v==='External only'?'':'gold'}">${v}</span>`}];
+table('t-winners', wcols, D.top_winners, {limit:25}); table('t-losers', wcols, D.top_losers, {limit:25});
+table('t-venues', [{k:'venue',h:'Venue'},{k:'group',h:'Group',f:v=>`<span class="tag">${v}</span>`},{k:'swaps',h:'Swaps',num:1,f:fmt.n},{k:'volume',h:'Volume',num:1,f:v=>`<span class="bar" style="width:${Math.max(2,80*v/D.venues[0].volume)}px"></span>${fmt.usd(v)}`},{k:'traders',h:'Traders',num:1,f:fmt.n}], D.venues, {sort:'volume'});
+// packs
+if (D.pack_kpi){ const P=D.pack_kpi, F=D.pack_buyer_funnel||{}; kpis('kpis-packs', [['Pack revenue', fmt.usd(P.revenue), `${fmt.n(P.packs)} packs · ${fmt.n(P.draws)} card draws`,'hero'],['Pack buyers', fmt.n(P.buyers), 'unique wallets'],['Redeemed a card', fmt.n(F.redeemed), `${fmt.pct(100*F.redeemed/F.buyers)} of buyers`],['Sold after', fmt.n(F.sold), `${fmt.pct(100*F.sold/F.buyers)} of buyers sold any Grail token`],['Cards redeemed', fmt.n(P.redeems), `${fmt.tok(P.redeemed_tokens)} tokens released`],['G-list wallets', fmt.n(D.grailist_kpi.wallets), 'bought a gated pack']]); }
+table('t-cohorts', [{k:'pack_series',h:'Pack',f:(v,r)=>`<b>${v}</b> <span class="tag ${r.pack_kind==='FOUNDER'?'gold':''}">${r.pack_kind}</span>`},{k:'token',h:'Token'},{k:'buyers',h:'Buyers',num:1,f:fmt.n},{k:'packs',h:'Packs',num:1,f:fmt.n},{k:'revenue',h:'Paid',num:1,f:fmt.usd},{k:'redeemed_pct',h:'Redeemed',num:1,f:v=>`<span class="bar b1" style="width:${v*60}px"></span>${fmt.pct1(v)}`},{k:'sold_pct',h:'Sold',num:1,f:v=>`<span class="bar b2" style="width:${v*60}px"></span>${fmt.pct1(v)}`},{k:'dumped_pct',h:'Dumped ≥90%',num:1,f:fmt.pct1},{k:'median_hours_to_sell',h:'Median time to sell',num:1,f:fmt.hrs},{k:'sold_usdc',h:'Sale proceeds',num:1,f:fmt.usd},{k:'holding_value',h:'Still held',num:1,f:fmt.usd},{k:'profitable_pct',h:'Buyers in profit',num:1,f:fmt.pct1},{k:'sniper_pct',h:'Snipers',num:1,f:fmt.pct1}], D.cohorts, {sort:'revenue'});
+table('t-packs', [{k:'pack_series',h:'Series'},{k:'pack_kind',h:'Kind',f:(v,r)=>`<span class="tag ${r.gated?'gold':''}">${v}${r.gated?' · gated':''}</span>`},{k:'packs',h:'Packs',num:1,f:fmt.n},{k:'buyers',h:'Buyers',num:1,f:fmt.n},{k:'revenue',h:'Revenue',num:1,f:fmt.usd},{k:'first',h:'First sale',f:fmt.date},{k:'last',h:'Last sale',f:fmt.date}], D.packs||[], {sort:'revenue'});
+const cohortCols = [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'pack_series',h:'Pack'},{k:'packs',h:'Packs',num:1},{k:'spent',h:'Paid',num:1,f:fmt.usd},{k:'redeemed',h:'Redeemed',f:v=>v?'<span class="tag good">yes</span>':'<span class="tag">no</span>'},{k:'redeemed_tokens',h:'Tokens',num:1,f:fmt.tok},{k:'pct_sold',h:'Sold %',num:1,f:v=>v>=0.9?`<span class="tag bad">${fmt.pct1(v)}</span>`:fmt.pct1(v)},{k:'sold_usdc',h:'Proceeds',num:1,f:fmt.usd},{k:'hours_to_sell',h:'Redeem→sell',num:1,f:fmt.hrs},{k:'sell_venue',h:'Sold via'},{k:'holding_value',h:'Held now',num:1,f:fmt.usd},{k:'roi',h:'ROI',num:1,f:v=>v==null?'—':`<span class="${v>0?'pos':'neg'}">${(v*100).toFixed(0)}%</span>`},{k:'sniper',h:'Sniper',f:v=>v?'<span class="tag warn">sniper</span>':''}];
+const cohortSel = document.getElementById('f-cohort'); const series = [...new Set(D.cohort_rows.map(r=>r.pack_series))];
+cohortSel.innerHTML = '<option value="">All gated packs</option>'+series.map(s=>`<option>${s}</option>`).join('');
+const cohortT = table('t-cohort-rows', cohortCols, D.cohort_rows, {sort:'spent'});
+function filterCohort(){ const s=cohortSel.value, q=document.getElementById('s-cohort').value.toLowerCase(); const r=D.cohort_rows.filter(x=>(!s||x.pack_series===s)&&(!q||x.wallet.includes(q))); cohortT.update(r); document.getElementById('n-cohort').textContent=`${r.length} rows`; }
+cohortSel.onchange=filterCohort; document.getElementById('s-cohort').oninput=filterCohort; filterCohort();
+// vault
+const V=D.vault_kpi; kpis('kpis-vault', [['Cards in vault (registry)', fmt.n(V.registry_cards), 'grail.xyz reserves API','hero'],['Cards minted on-chain', fmt.n(Math.round(V.minted_cards)), `${fmt.n(V.grail_mints+V.user_mints)} mint events`],['Vaulted by Grail', fmt.n(Math.round(V.grail_cards)), `${fmt.pct(100*V.grail_cards/V.minted_cards)} of cards`],['Vaulted by users', fmt.n(Math.round(V.user_cards)), `${fmt.n(V.vaulters)} wallets · ${fmt.n(V.user_mints)} mints`],['Sold after vaulting', fmt.pct(V.sold_after_pct), 'of user card mints followed by a sell', V.sold_after_pct>50?'bad':'good'],['Physical redemptions', fmt.n(V.burn_events), `${fmt.n(V.redemptions_shipped)} shipped · ${fmt.n(V.redemptions_pending)} pending · ${fmt.n(V.redemptions_cancelled)} cancelled`]]);
+document.getElementById('vault-callout').innerHTML = `<b>Reads as:</b> the vault holds ${fmt.n(V.registry_cards)} cards. On-chain mints account for ${fmt.n(Math.round(V.minted_cards))} card-equivalents; ${fmt.n(Math.round(V.grail_cards))} were minted to Grail's own addresses (inventory contract, team wallet) and only ${fmt.n(Math.round(V.user_cards))} to ${fmt.n(V.vaulters)} outside wallets. Every genuine vaulting also fires the reserve contract's backed-supply event; the two mints without it are cancelled redemptions returning tokens, and are excluded. Grail's team wallet never forwarded card-sized lots to users, so user vaulting is genuinely rare on-chain. Cards Grail bought from people off-chain (cash deals) would show up as Grail-vaulted here.`;
+bar('c-vault-monthly', D.vault_monthly.months, [{label:'Grail', data:D.vault_monthly.grail, backgroundColor:css('--gold'), borderRadius:1},{label:'Users', data:D.vault_monthly.user, backgroundColor:css('--s1'), borderRadius:1}], {plugins:{legend:{labels:{boxWidth:10}}, tooltip:tip}, scales:{x:{stacked:true, grid:{display:false}}, y:{stacked:true, grid:{color:css('--grid')}, border:{display:false}, title:{display:true, text:'cards'}}}});
+table('t-vault-token', [{k:'symbol',h:'Token'},{k:'vaulters',h:'Wallets',num:1},{k:'cards',h:'Cards',num:1},{k:'minted',h:'Tokens',num:1,f:fmt.tok},{k:'sold_pct',h:'Sold after',num:1,f:fmt.pct1}], D.vault_by_token, {sort:'cards'});
+table('t-vault-rows', [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'symbol',h:'Token'},{k:'cards',h:'Cards',num:1},{k:'ts',h:'Minted',f:fmt.date},{k:'origin',h:'Where the card came from',f:v=>`<span class="tag ${v&&v.startsWith('Re-vault')?'warn':'gold'}">${v}</span>`},{k:'what',h:'What they did with the tokens',f:v=>`<span class="tag ${v==='Holding'?'good':v&&v.startsWith('Sold the card')?'bad':''}">${v}</span>`},{k:'sold_usdc',h:'Proceeds',num:1,f:fmt.usd},{k:'still_holding',h:'Holds now',num:1,f:fmt.tok}], D.vault_rows, {sort:'ts'});
+table('t-reserves', [{k:'token',h:'Token'},{k:'name',h:'Card',f:v=>`<span class="note">${v}</span>`},{k:'cards',h:'Cards',num:1},{k:'tokens_per_card',h:'Tokens/card',num:1,f:fmt.tok},{k:'psa_pop',h:'PSA pop',num:1,f:fmt.n},{k:'reserve_price',h:'Card value',num:1,f:fmt.usd}], D.reserves, {sort:'cards'});
+table('t-burns', [{k:'symbol',h:'Token'},{k:'redeemer',h:'Redeemed by',f:fmt.addr},{k:'ts',h:'Date',f:fmt.date},{k:'origin',h:'Tokens came from',f:(v,r)=>`<span class="tag gold">${v}</span><br><span class="note">app ${fmt.tok(r.src_app)} · dex ${fmt.tok(r.src_dex)} · packs ${fmt.tok(r.src_pack)} · own mint ${fmt.tok(r.src_mint)} · transfers ${fmt.tok(r.src_xfer)}</span>`},{k:'outcome',h:'Claim outcome',f:v=>`<span class="tag ${v.startsWith('Cancelled')?'warn':v.startsWith('Shipped')?'good':v.startsWith('Claim')?'':'bad'}">${v}</span>`},{k:'claim_id',h:'Claim NFT',num:1,f:v=>v==null?'—':'#'+v}], D.burns||[], {sort:'ts'});
+// snipers
+const S=D.sniper_kpi; kpis('kpis-snipers', [['Sniper wallets', fmt.n(S.sniper_wallets), `${fmt.n(S.serial)} serial`,'hero'],['Snipe buys', fmt.n(S.snipe_events), `${fmt.n(S.same_block)} in the launch block`],['Sold within 24h', fmt.pct(S.sold_24h_pct), 'of snipe positions'],['Snipes in profit', fmt.pct(S.profitable_pct), 'realized + unrealized'],['Sniper P&L', fmt.usdS(S.total_pnl), 'net across snipe positions', S.total_pnl>=0?'good':'bad']]);
+table('t-sniper-token', [{k:'symbol',h:'Token'},{k:'snipes',h:'Snipes',num:1},{k:'same_block',h:'Launch block',num:1},{k:'spend',h:'Spent',num:1,f:fmt.usd},{k:'pnl',h:'P&L',num:1,f:fmt.sgn},{k:'sold_24h_pct',h:'Sold <24h',num:1,f:fmt.pct}], D.sniper_by_token, {sort:'snipes'});
+table('t-sniper-rows', [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'tag',h:'Tag',f:v=>`<span class="tag ${v==='Serial sniper'?'bad':'warn'}">${v}</span>`},{k:'tokens_sniped',h:'Tokens',num:1},{k:'symbols',h:'Which',f:v=>`<span class="note">${v}</span>`},{k:'same_block',h:'Launch-block buys',num:1},{k:'min_delta_min',h:'Fastest',num:1,f:v=>v<=0?'block 0':v.toFixed(1)+' min'},{k:'snipe_spend',h:'Snipe spend',num:1,f:fmt.usd},{k:'pnl',h:'Snipe P&L',num:1,f:fmt.sgn},{k:'total_pnl',h:'All P&L',num:1,f:fmt.sgn},{k:'primary_venue',h:'Venue'}], D.sniper_rows, {sort:'tokens_sniped'});
+// glist
+const G=D.grailist_kpi; kpis('kpis-glist', [['G-list wallets', fmt.n(G.wallets), 'bought at least one gated pack','hero'],['Flippers', fmt.n(G.flippers), 'dumped ≥90% of a mint','bad'],['Partial sellers', fmt.n(G.partial), 'sold some'],['Holders', fmt.n(G.holders), 'redeemed, never sold','good'],['Unredeemed', fmt.n(G.unredeemed), 'still sitting in the card NFT'],['Also snipers', fmt.n(G.snipers), 'tagged in the sniper section']]);
+const gcols = [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'tag',h:'Tag',f:v=>`<span class="tag ${v==='Flipper'?'bad':v==='Holder'?'good':v==='Partial seller'?'warn':''}">${v}</span>`},{k:'series',h:'Packs',f:v=>`<span class="note">${v}</span>`},{k:'packs',h:'#',num:1},{k:'spent',h:'Paid',num:1,f:fmt.usd},{k:'avg_pct_sold',h:'Sold %',num:1,f:fmt.pct1},{k:'sold_usdc',h:'Proceeds',num:1,f:fmt.usd},{k:'holding_value',h:'Held now',num:1,f:fmt.usd},{k:'trader_pnl',h:'Trading P&L',num:1,f:fmt.sgn},{k:'trader_volume',h:'Volume',num:1,f:fmt.usd},{k:'primary_venue',h:'Venue'},{k:'sniper',h:'Sniper',f:v=>v?'<span class="tag warn">sniper</span>':''}];
+const glistT = table('t-glist', gcols, D.grailist, {sort:'spent'}); let glistRows = D.grailist;
+function filterG(){ const t=document.getElementById('f-glist').value, q=document.getElementById('s-glist').value.toLowerCase(); glistRows=D.grailist.filter(x=>(!t||x.tag===t)&&(!q||x.wallet.includes(q)||x.series.toLowerCase().includes(q))); glistT.update(glistRows); document.getElementById('n-glist').textContent=`${glistRows.length} wallets`; }
+document.getElementById('f-glist').onchange=filterG; document.getElementById('s-glist').oninput=filterG; filterG();
+document.getElementById('b-copy').onclick=async()=>{ const keys=['wallet','tag','series','packs','spent','avg_pct_sold','sold_usdc','holding_value','trader_pnl','trader_volume','primary_venue','usage','sniper','sniper_tag']; const csv=[keys.join(',')].concat(glistRows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))).join('\n'); try{ await navigator.clipboard.writeText(csv); document.getElementById('b-copy').textContent='Copied'; setTimeout(()=>document.getElementById('b-copy').textContent='Copy as CSV',1500);}catch(e){ document.getElementById('n-glist').textContent='Clipboard blocked; use the attached CSV.'; } };
+// methodology
+document.getElementById('meth').innerHTML = [
+ ['Source','Every Swap, Mint and Burn event on the 26 Grail Uniswap V3 pools, every ERC-20 Transfer of the 26 tokens, every pack purchase and card redemption event on Grail\'s executor and vault contracts, plus the calling transaction of every swap. Fetched from a Base RPC and processed in DuckDB. Prices are the live pool prices from grail.xyz at generation time.'],
+ ['Who the trader is','The wallet whose net token balance moved in the swap transaction, not the relayer. Gasless Grail-app trades, Fomo smart-wallet trades and aggregator hops all resolve to the real user.'],
+ ['Venue','The first contract the transaction called (tx.to). Grail = the Grail router, the older Grail swap contract, the pack executor, the 0x meta-transaction settler, or any transaction sent by Grail\'s gasless relayer. Fomo = ERC-4337 entrypoints and the relay router. Aggregators and Telegram bots by their canonical router addresses. Bots / Direct = the caller is the pool-level sender itself.'],
+ ['P&L','Average-cost basis per wallet per token. Buys add cost. Card redemptions add tokens at the allocated pack price. Tokens received by transfer or airdrop are added at the pool price at that moment, so only price moves after receipt count. Sells realize proceeds minus basis. Unrealized = remaining tokens × current price − remaining basis. "In profit" = realized + unrealized > 0.'],
+ ['Bots','Wallets whose primary venue is Bots / Direct are excluded from trader counts and profitability but included in volume.'],
+ ['Exclusive mints','Purchases of gated packs (LAUNCH and FOUNDER kinds) recorded by the executor\'s purchase event, matched to later card redemptions to the same wallet of the pack\'s token, then to that wallet\'s sells of the token after the redemption.'],
+ ['Card vaulting','Every ERC-20 mint (Transfer from the zero address) that coincides with the reserve contract\'s backed-supply event is a physical card entering the vault; mints without that event are cancelled redemptions returning tokens and are excluded; cards = amount ÷ the reserve\'s tokens-per-card from grail.xyz/api/reserves. Mints to Grail\'s inventory contract, team wallet, deployer or other Grail-controlled addresses are Grail-vaulted; mints to anyone else are user-vaulted. Cross-checked against the registry\'s backed card count and against the reserve NFT mint recipients.'],
+ ['Snipers','First buy of a token within 150 blocks (5 minutes) of the pool\'s first liquidity Mint event.'],
+ ['Grail team','The deployer, the inventory contract and the team inventory wallet are excluded from traders, holders and vaulters. Other team wallets are not identifiable on-chain and may remain.'],
+].map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
+</script>
