@@ -19,6 +19,11 @@ GRAIL_ROUTER = "0x2cb51d6e53ba3e983a6a50d2247931c96f9d7358"
 GRAIL_OLD_ROUTER = "0x94df02cc6338e6b38f60a655ea893ea0c1c2961f"
 GRAIL_DEPLOYER = "0xcb5a9f6c4709c3bb8e37f729be10c6c2aa66aefe"
 GRAIL_RELAYERS = {"0x8c5a2bfb1b6bbc380abd6df6ee21679a3b6c0c93"}
+# Grail staff wallets: the admin list hard-coded in the grail.xyz front-end, the team inventory wallet,
+# and the wallet grailytics labels OURS. Excluded from traders, holders, pack cohorts and the G-list.
+GRAIL_TEAM = {'0xd748d069c675be1bcdd7868b42fdfe9c3eca478a','0xa00b7b0a79b88322f41a2c355587100159583fb8','0x2cd1e614ec851265463c77e8d5115852101cf343',
+              '0x4d1382863382b2d93aa7d1a968586bf21e526c5b','0xa2875fe1a7579806e0ee42d408444124c3ba7d30','0x283fc513f1399ba53ac374a3976a71d238b5b1f3',
+              '0x61f1e873402b18ea34ff27117cfbe578bfa9443c','0x390dfc1567d53a3f5277b8c2f8f70d119b0e910b','0x8a0c45b9276aedaabbae18afe42c1fcd8c379982'}
 ZERO = "0x" + "0"*40
 # pack -> token mapping (LAUNCH packs are single-token); genesis packs span many tokens
 PACK_TOKEN = {'VITALIKLAUNCH':'gVITALIK','KAILAUNCHPACKS':'gKAI','ALLENLAUNCH':'gALLEN','COOPLAUNCH':'gCOOP','KIRKLAUNCHPACKS1':'gKIRK','KIRKLAUNCHPACK':'gKIRK','SWIFTLAUNCH':'gSWIFT','ELONLAUNCH':'gELON'}
@@ -101,7 +106,7 @@ swaps['day'] = pd.to_datetime(swaps.ts, unit='s').dt.strftime('%Y-%m-%d')
 
 # ---------- pack buys & redeems
 if len(pb):
-    pb['buyer'] = pb.buyer.str.lower(); pb['gated'] = pb.pack_id.map(lambda p: PACK.get(p,{}).get('gated'))
+    pb['buyer'] = pb.buyer.str.lower(); pb = pb[~pb.buyer.isin(GRAIL_TEAM)].copy(); pb['gated'] = pb.pack_id.map(lambda p: PACK.get(p,{}).get('gated'))
     pb['pack_kind'] = pb.pack_id.map(lambda p: PACK.get(p,{}).get('pack_kind'))
     pb['pack_series'] = pb.pack_id.map(lambda p: PACK.get(p,{}).get('pack_series'))
     pb['price'] = pb.pack_id.map(lambda p: float(PACK.get(p,{}).get('usdc_price') or 0))
@@ -177,7 +182,7 @@ for (w, sym), p in pos.items():
 pos_df = pd.DataFrame(rows)
 deploy_mints = mints.merge(tokinfo[['deploy_block']], left_on='symbol', right_index=True)
 TREASURY = set(deploy_mints[deploy_mints.block <= deploy_mints.deploy_block + 5].to) | {'0x390dfc1567d53a3f5277b8c2f8f70d119b0e910b', '0x94df02cc6338e6b38f60a655ea893ea0c1c2961f'}  # Grail inventory + team wallet (labelled OURS on grailytics)
-INFRA = POOLS | {VAULT, ZERO, EXEC, GRAIL_ROUTER, GRAIL_OLD_ROUTER, GRAIL_DEPLOYER} | TREASURY
+INFRA = POOLS | {VAULT, ZERO, EXEC, GRAIL_ROUTER, GRAIL_OLD_ROUTER, GRAIL_DEPLOYER} | TREASURY | GRAIL_TEAM
 print('treasury wallets', TREASURY)
 pos_df = pos_df[~pos_df.wallet.isin(INFRA)]
 
@@ -225,7 +230,7 @@ _rl = [json.loads(l) for l in open('data/raw/logs_reserves.jsonl')] if os.path.e
 vault_event_txs = {l['tx'] for l in _rl if l['t'][0].startswith(T_BACKED)}
 nft = pd.DataFrame([dict(sym=RES_ADDR[l['a'].lower()], frm='0x'+l['t'][1][26:], to='0x'+l['t'][2][26:], token_id=int(l['t'][3],16), block=l['b'], ts=GENESIS_TS+2*l['b'], tx=l['tx']) for l in _rl if l['t'][0]==T_XFER and len(l['t'])==4])
 
-GRAIL_WALLETS = TREASURY | {GRAIL_DEPLOYER, '0x8a0c45b9276aedaabbae18afe42c1fcd8c379982', '0x2cd1e614ec851265463c77e8d5115852101cf343', '0x9fcab3d5fa3c4cdf0b3e554f30bd290a5ad02118'}
+GRAIL_WALLETS = TREASURY | GRAIL_TEAM | {GRAIL_DEPLOYER, '0x9fcab3d5fa3c4cdf0b3e554f30bd290a5ad02118'}
 mint_df = mints.merge(tokinfo[['deploy_block']], left_on='symbol', right_index=True)
 mint_df['cards'] = [a / MULT.get(sy, 10000.0) for a, sy in zip(mint_df.amount, mint_df.symbol)]
 mint_df['remint'] = ~mint_df.tx.isin(vault_event_txs) if vault_event_txs else False

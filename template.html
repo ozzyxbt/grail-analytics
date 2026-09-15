@@ -101,6 +101,9 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
 .addr{font-family:"IBM Plex Mono",monospace;font-size:12px}
 .callout{border-left:3px solid var(--gold);background:var(--gold-soft);padding:10px 14px;margin:14px 0;color:var(--ink);max-width:80ch}
 .callout b{color:var(--gold-ink)}
+.foot{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink3);font-size:12.5px;max-width:90ch}
+.foot p{margin:0 0 8px}
+.foot .dl{display:flex;flex-wrap:wrap;gap:6px 14px}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -204,6 +207,11 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
   <div class="sec-head"><h2>How it's counted</h2></div>
   <div class="panel"><dl class="meth" id="meth"></dl></div>
 </section>
+<footer class="foot">
+  <p><b>Independent project.</b> Not affiliated with, endorsed by, or operated by Grail Labs. Nothing here is financial advice. Every figure is derived from public Base blockchain data and Grail's public registry endpoints; wallet tags (sniper, flipper, bot, venue) are heuristics described above, not statements of fact about any person.</p>
+  <p>Venue identification cross-checked against the contract map published by <a href="https://users.grailytics.xyz" target="_blank" rel="noopener">grailytics.xyz</a>. Charts by Chart.js. Source and pipeline: <a href="https://github.com/ozzyxbt/grail-analytics" target="_blank" rel="noopener">github.com/ozzyxbt/grail-analytics</a>.</p>
+  __CSV_LINKS__
+</footer>
 </div>
 
 <script id="data" type="application/json">__DATA__</script>

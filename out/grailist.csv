@@ -88,7 +88,6 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0xaab1dc6c5e63ad528f7d510f11f7191dbcd6552b,7,COOP LAUNCH;ELON LAUNCH;Founder;KAI LAUNCH;Vitalik Launch,289.0,True,True,0.6,111.757826,0.0,False,,60.980295999999996,-27.183428999999997,Grail,Grail app only,Flipper
 0xcbbcdc02613148258f1e39294517b4fdfd15b7c6,7,COOP LAUNCH;ELON LAUNCH;Founder;KAI LAUNCH;Vitalik Launch,289.0,True,True,0.4,94.902761,80.74299689706632,False,,94.621307,-54.30294921813351,Grail,Grail app only,Flipper
 0xf9640ac4e36b8abddbe85a383e2354942128f22a,7,COOP LAUNCH;ELON LAUNCH;Founder;KAI LAUNCH;Vitalik Launch,289.0,True,True,0.4,38.766498999999996,0.0,False,,161.281375,-60.62959811666664,Grail,Grail app + external,Flipper
-0x283fc513f1399ba53ac374a3976a71d238b5b1f3,9,ELON LAUNCH;Founder;KIRK LAUNCH;SWIFT LAUNCH;Vitalik Launch,287.0,False,False,0.0,0.0,55.47762353254984,False,,952.645613,281.92538983864046,Grail,Grail app only,Unredeemed
 0x3d141c77f7e68e41d01571e49175e0f419a3d3ea,5,ALLEN LAUNCH;World Cup 2026,286.0,True,True,2.7402164475653983,695.8101610000001,119.09665331141545,True,Early buyer,1224.611242,437.346474297708,Grail,Grail app only,Flipper
 0x36268dfae0b96d2805738ed39fa3e0ef15299db3,5,ELON LAUNCH;KAI LAUNCH;Vitalik Launch,284.0,True,True,1.0143699520833334,687.709902,0.6116832643179074,False,,701.626134,346.43659369867817,OKX Wallet,External only,Flipper
 0x666d254b723ce08978efa1715978767e23df6126,5,ELON LAUNCH;KAI LAUNCH;Vitalik Launch,284.0,True,True,1.2182324500667632,871.968928,29.642180328058746,False,,1195.753472,417.0972705243054,Grail,Grail app + external,Flipper
@@ -243,7 +242,7 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0xbe3d4dc77185b38a50640bc3f7be1cfaeb09c53a,2,ELON LAUNCH;SWIFT LAUNCH,77.0,True,True,1.2412570761112853,577.0311330000001,7.591870687232077,False,,4344.395675,-401.25066666511714,OKX Wallet,Grail app + external,Flipper
 0x291e59a85014269f99ee0df9e89083bbf5a80d62,4,ALLEN LAUNCH;KAI LAUNCH;SWIFT LAUNCH,74.0,True,True,1.0,149.7471,0.0,False,,153.1171,75.48036255754347,Grail,Grail app only,Flipper
 0x35c878ff10587b16c55a781c538c2dd95346767d,3,COOP LAUNCH;ELON LAUNCH;Founder,74.0,True,False,0.0,0.0,8.131953912173599e-13,False,,0.0,0.0,No swaps,No swaps,Holder
-0x3a7267635c171d7a8fb326d57f0ff9d8e79820b8,2,COOP LAUNCH;ELON LAUNCH,74.0,True,True,1.0,121.21521200000001,0.0,False,,2663.20949,-114.64331274309166,Bots / Direct,Grail app + external,Flipper
+0x3a7267635c171d7a8fb326d57f0ff9d8e79820b8,2,COOP LAUNCH;ELON LAUNCH,74.0,True,True,1.0,121.21521200000001,0.0,False,,2663.20949,-114.64331274309166,Grail,Grail app + external,Flipper
 0x4ddba3e9b3845cf08c17d8e3b210daeae6e0ca7d,3,COOP LAUNCH;ELON LAUNCH;Founder,74.0,True,True,0.024999999999999998,18.136009,1.8861334638507e-12,False,,52.965768000000004,6.11424580000007,Grail,Grail app only,Partial seller
 0x8084c41c8ae279f7dd0456e7924421237f590646,2,COOP LAUNCH;ELON LAUNCH,74.0,True,True,1.0,359.859856,0.0,False,,359.859856,285.859856,Grail,Grail app only,Flipper
 0x91ef2eaa17cddfe1b80369dea2edefc15b43ee94,3,COOP LAUNCH;ELON LAUNCH;Founder,74.0,True,True,0.24638000000000002,75.267899,7.0561222404384e-13,False,,114.956499,-17.675385505937783,Grail,Grail app only,Partial seller
@@ -265,13 +264,13 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0x1bb42ee14895f93bbd377f2b2802b11b6ee40b9b,1,ELON LAUNCH,69.0,True,True,0.9077999999999999,426.321825,26.903999646000013,False,,426.321825,384.22582464600004,Bots / Direct,External only,Flipper
 0x1d76bae9afebd67f2560ee9dd85a2022b2bda914,2,ELON LAUNCH;KIRK LAUNCH,69.0,True,True,1.8430340048687393,486.37239199999993,0.0,False,,4969.560658,523.8487625943443,Grail,Grail app + external,Flipper
 0x31812d343117f062bf6db7d235afd03dde2c8bb4,1,ELON LAUNCH,69.0,True,True,1.0,185.369876,0.0,False,,185.369876,116.369876,Bots / Direct,External only,Flipper
-0x3e2e77a3501f2aec2639ac314046686ab595cdf3,1,ELON LAUNCH,69.0,True,True,1.0,99.865519,0.0,False,,1561.658449,-336.09177155004073,BasedBot,External only,Flipper
+0x3e2e77a3501f2aec2639ac314046686ab595cdf3,1,ELON LAUNCH,69.0,True,True,1.0,99.865519,0.0,False,,1561.658449,-336.09177155004073,Other / Unknown,External only,Flipper
 0x4e489bd4ba95145853fa36a032b715b03ae4ee2f,1,ELON LAUNCH,69.0,True,True,1.0,382.656819,0.0,False,,1267.514842,-307.37831088977083,Grail,Grail app + external,Flipper
 0x4e88717518c8ae9aa3930298cbd1c1f6b7e83ec1,1,ELON LAUNCH,69.0,True,True,8.573610638133548,2379.446852,0.02966656301282513,True,Sniper,20924.240145,2268.24312624412,Uniswap App,Grail app + external,Flipper
 0x522cdb874b499f1518b4f584e5fbb8c8f4e31603,1,ELON LAUNCH,69.0,True,True,1.0,206.153478,0.0,True,Early buyer,1345.696979,173.62889984778184,BasedBot,Grail app + external,Flipper
 0x58f617d0a859cbbc04f269c126dd6bd0b5174679,1,ELON LAUNCH,69.0,True,True,1.7636038201558297,179.142719,0.0,False,,2532.362495,-19.19680912218268,0x API (Matcha/Rabby),External only,Flipper
 0x6a10d50c1b25e6eea5c9a2153a2f111199c1cd4e,2,ELON LAUNCH;Founder,69.0,True,True,1.0,211.492677,0.0,False,,2343.20928,-82.62093339965955,Grail,Grail app only,Flipper
-0x6acfcc1e5133a4a4e397efdc14b1cd0903cbe1cc,1,ELON LAUNCH,69.0,True,True,1.0,427.53646100000003,0.0,False,,471.964193,366.092834221209,Grail,Grail app + external,Flipper
+0x6acfcc1e5133a4a4e397efdc14b1cd0903cbe1cc,1,ELON LAUNCH,69.0,True,True,1.0,427.53646100000003,0.0,False,,471.964193,366.092834221209,OKX Wallet,Grail app + external,Flipper
 0x70b2ee03ed78855c612f9ca0bed658aa740d24c1,1,ELON LAUNCH,69.0,True,True,1.1669955053018934,279.53866899999997,11.02998286484322,False,,1355.770923,591.7490651251927,Grail,Grail app + external,Flipper
 0x7695d6078c0bb810eb1be45e13f3d58bff903d2c,2,ELON LAUNCH;Founder,69.0,True,True,1.0,373.761099,0.0,False,,3316.880542,1458.7175054392733,Grail,Grail app only,Flipper
 0x77b25381694b7e81e7b6419d40a9d5c70c1b2cb5,1,ELON LAUNCH,69.0,False,False,0.0,0.0,0.0,False,,0.0,0.0,No swaps,No swaps,Unredeemed
@@ -285,7 +284,7 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0xc17a2e9afd0e5d257c7f8de715f89f482e196c20,1,ELON LAUNCH,69.0,True,True,1.0,517.142144,0.0,False,,517.142144,448.14214400000003,Grail,Grail app only,Flipper
 0xc66d3cdf5bbd8c36c478be93fbe3796c772ac6b4,1,ELON LAUNCH,69.0,True,True,1.0,396.605052,0.0,False,,396.605052,327.605052,Grail,Grail app only,Flipper
 0xd395c8989cc132b76b44ca1acfd17186524304a3,1,ELON LAUNCH,69.0,True,True,1.2841336845805313,242.739094,0.0002736258788140351,False,,476.72263300000003,67.47574699476317,Grail,Grail app + external,Flipper
-0xdbbef500e484c829bbae0f8c7a1644e12adcec6e,1,ELON LAUNCH,69.0,True,True,1.0,201.304088,1.288292563959134,False,,203.297088,131.59938056395913,Other / Unknown,Grail app + external,Flipper
+0xdbbef500e484c829bbae0f8c7a1644e12adcec6e,1,ELON LAUNCH,69.0,True,True,1.0,201.304088,1.288292563959134,False,,203.297088,131.59938056395913,Grail,Grail app + external,Flipper
 0xe592fea2d09800c14f9f27d0ace7300be171f48c,1,ELON LAUNCH,69.0,True,True,1.009728,192.662715,0.0,False,,250.199926,145.8359148972351,Grail,Grail app only,Flipper
 0xe72013c9b98286a70bd5d9c6e42ddda285c577a7,2,ELON LAUNCH;KIRK LAUNCH,69.0,True,True,0.5,243.026179,38.1982176,True,Early buyer,2240.602812,452.2327686206869,GMGN,External only,Flipper
 0xe8866b49d62050fea07f5f4aa29c5c5c58f7ee6e,1,ELON LAUNCH,69.0,True,True,1.3746698214627628,310.693432,0.0,False,,2917.096836,94.77551199999994,GMGN,Grail app + external,Flipper
@@ -346,7 +345,6 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0x7495bc652d193d0ee1a93f94b858b1d547956374,1,COOP LAUNCH,5.0,True,False,0.0,0.0,14.689658,False,,5.164199,7.945539564837971,Grail,Grail app only,Holder
 0x7a7f9d4b2060257104562c6affcaf6057f647f48,1,COOP LAUNCH,5.0,True,True,1.0,14.718333,0.0,False,,14.718333,9.718333,Grail,Grail app only,Flipper
 0x820741039a8113c1c0a04104676d0a2a801c1277,2,COOP LAUNCH;KIRK LAUNCH,5.0,True,True,1.0,41.818847,0.0,True,Early buyer,245.430344,3.659535043915282,Grail,Grail app only,Flipper
-0xa2875fe1a7579806e0ee42d408444124c3ba7d30,1,COOP LAUNCH,5.0,False,False,0.0,0.0,0.0,False,,0.0,0.0,No swaps,No swaps,Unredeemed
 0xb31fe637fd13f678020190a1a0f4634e2e7a02ef,1,COOP LAUNCH,5.0,True,True,0.35619999999999996,5.080674,9.4572018204,False,,79.393794,-13.571561048881769,Grail,Grail app + external,Partial seller
 0xb4e3c83de3b39c352f91b479d73e1b4adeaa3ae4,1,COOP LAUNCH,5.0,True,True,1.0,12.911359,0.0,False,,12.911359,7.911358999999999,Grail,Grail app only,Flipper
 0xf00cbfa9d4ac1c24001000011ae4f670de1b5019,1,COOP LAUNCH,5.0,True,False,0.0,0.0,14.689658,False,,7454.854803,360.9021142218124,Grail,Grail app only,Holder
@@ -366,7 +364,6 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0x27115772707bd193e9bdab58c117be884d22e346,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,0.0,0.0,No swaps,No swaps,Unredeemed
 0x28c755811fc65de713d2338c0bc4267b95af76fc,1,Founder,0.0,True,True,1.0,19.825117,0.0,False,,1717.721174,570.121910939126,Bots / Direct,Grail app + external,Flipper
 0x29bed086b7582a84dd1f290a37e9ea75fe7e8125,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,99.84,-14.403249003285156,Grail,Grail app only,Unredeemed
-0x2cd1e614ec851265463c77e8d5115852101cf343,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,1525.214699,-154.41562750393743,Grail,Grail app only,Unredeemed
 0x2d6210d50f3cfbd4ad08b0d77851bed6df6a0f00,1,Founder,0.0,True,True,0.635593220338983,19.776339,11.4180695,False,,4394.730156,4718.378258942517,BasedBot,Grail app + external,Partial seller
 0x2da68dd46ff1fac8bd81fae86f1f9a4639c81917,1,KIRK LAUNCH,0.0,True,True,1.0,28.623742,0.0,False,,28.623742,-0.33467999999999876,Grail,Grail app only,Flipper
 0x2f28a76712d42086b9f2f56a5c76772690a31225,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,153.762811,-4.721863330925393,Grail,Grail app only,Unredeemed
@@ -375,7 +372,6 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0x319f28ff0b852292cda4a2bcd8a49e3dd2e0e678,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,121.13031699999999,-11.229060747652852,Grail,Grail app only,Unredeemed
 0x38d7dd967a516883e49d24b884ea7784f88c1fa0,1,KIRK LAUNCH,0.0,True,True,1.0,26.226007,0.0,False,,82.042597,6.37591137988216,0x API (Matcha/Rabby),External only,Flipper
 0x3900a3b08165a18e423c5b9897f8399c49dd7972,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,110.8335,-4.955812360123125,Grail,Grail app only,Unredeemed
-0x390dfc1567d53a3f5277b8c2f8f70d119b0e910b,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,0.0,0.0,No swaps,No swaps,Unredeemed
 0x3e9e3d99a449fa3b1ca63aae2a7b9d11f689cf39,1,Founder,0.0,True,True,21.21243332652545,372.77187699999996,7.2331248137966835,False,,2253.210798,-123.81422403325986,GMGN,External only,Flipper
 0x42e6217b03ecbb7b5ebb503af6ec0ed07ed8aaa6,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,139.776,-4.797370352453808,Grail,Grail app only,Unredeemed
 0x4359d0c6224f8a6f5b4473640095f1ed343b0479,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,1977.245133,-266.4460280792718,Grail,Grail app only,Unredeemed
@@ -398,7 +394,7 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0x6b594c80de240404fc8b798ba1736102e76c5984,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,131.877168,-2.642829974221387,Grail,Grail app only,Unredeemed
 0x6ba5ca0d6c01a6e96c6d7fad223dd8c1e7d44718,1,KIRK LAUNCH,0.0,True,True,1.0,24.054801,0.0,False,,146.120788,1.5651683065324011,Grail,Grail app only,Flipper
 0x6eb28880b0c29a97bb070d283bacb7eb8e2297ca,1,KIRK LAUNCH,0.0,True,True,1.0,26.696717,0.0,False,,26.696717,21.696717,0x API (Matcha/Rabby),External only,Flipper
-0x771debfa5b6b855f2b0ef1d480219397cc32e190,1,KIRK LAUNCH,0.0,False,False,0.0,0.0,0.0,False,,318.110119,148.5391711629692,1inch,Grail app + external,Unredeemed
+0x771debfa5b6b855f2b0ef1d480219397cc32e190,1,KIRK LAUNCH,0.0,False,False,0.0,0.0,0.0,False,,318.110119,148.5391711629692,Grail,Grail app + external,Unredeemed
 0x79afc144ff81d9bea860183226c437c81d844baa,1,Founder,0.0,True,True,1.6911109405506588,48.391152,9.596010935847082e-05,False,,1367.487619,-704.634340995987,Grail,Grail app + external,Flipper
 0x7ca0e79e843fb4827b19c9edef327b2d3db557fb,1,Founder,0.0,False,False,0.0,0.0,0.0,True,Serial sniper,865.327511,206.1933254710683,BasedBot,External only,Unredeemed
 0x7ee5f26c3001c0031e96bfc146b4138a24c3f50a,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,2780.433615,139.6919476566177,Grail,Grail app only,Unredeemed
@@ -442,7 +438,6 @@ wallet,packs,series,spent,redeemed_any,sold_any,avg_pct_sold,sold_usdc,holding_v
 0xd1c8e3f7ef2509d38b2d868d069a8498994a0308,1,Founder,0.0,False,False,0.0,0.0,0.0,False,,85.701255,-3.9611893579179953,Grail,Grail app only,Unredeemed
 0xd33697ab5ba5c856951420a577b34560bd1ebdac,1,KIRK LAUNCH,0.0,True,True,1.0,27.761081,0.0,False,,27.761081,-0.16938400000000087,Grail,Grail app only,Flipper
 0xd5ab525288e3b8713d9fba88b54efe85f6c3de0d,1,KIRK LAUNCH,0.0,True,True,1.0,26.381518,0.0,False,,26.381518,21.381518,0x API (Matcha/Rabby),External only,Flipper
-0xd748d069c675be1bcdd7868b42fdfe9c3eca478a,1,Founder,0.0,True,False,0.0,0.0,9.116400800000111,False,,91.570693,-26.274346250847614,Grail,Grail app only,Holder
 0xdca4901c860717499ff3335a0bc73db2f32a16dd,1,KIRK LAUNCH,0.0,True,True,1.0,27.930465,0.0,False,,27.930465,-0.0852739999999983,Grail,Grail app only,Flipper
 0xddc06da930967f1dce1e160d88f3a7629d963cbc,1,KIRK LAUNCH,0.0,False,False,0.0,0.0,0.0,False,,0.0,0.0,No swaps,No swaps,Unredeemed
 0xde700d45006a4feb6be069b9ee87b4fa8f4e388e,1,KIRK LAUNCH,0.0,True,True,1.0,29.04845,0.0,False,,78.163214,16.605629666666665,Grail,Grail app only,Flipper

@@ -58,3 +58,12 @@ Every fetcher is resumable via cursor files in `data/raw/`, so re-running `./run
 - **Team wallets**: deployer, inventory contract and the team inventory wallet are excluded; other team wallets are not identifiable on-chain.
 
 Data sources: `mainnet.base.org`, `base-rpc.publicnode.com`, `grail.xyz/api`. No API keys required.
+
+## Hosting
+
+`build_dashboard.py` produces two files from `out/analysis.json`: `out/grail_dashboard.html` (fragment, for the Claude artifact) and `site/index.html` (full standalone page with CSV downloads, for static hosting).
+
+- **`.github/workflows/pages.yml`** deploys `site/` to GitHub Pages on every push that touches `out/`, the template or the build script.
+- **`.github/workflows/refresh.yml`** runs daily (06:17 UTC) and on demand: pulls new blocks incrementally (raw logs and cursors are kept in the Actions cache), re-runs the analysis, commits `out/`, and redeploys.
+
+The site carries a footer disclaimer (independent project, not affiliated with Grail Labs, not financial advice) and credits grailytics.xyz for the venue contract map.
