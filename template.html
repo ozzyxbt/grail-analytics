@@ -110,9 +110,9 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
 <div class="wrap">
 <header class="mast">
   <div>
-    <div class="eyebrow">Grail · Base · every token pool, every swap, every pack</div>
+    <div class="eyebrow">Grail · Base + Robinhood Chain · every pool, every swap, every pack</div>
     <h1>Grail Slab Report</h1>
-    <p>Who actually made money on Grail's card-backed tokens, whether they came through the Grail app or an aggregator, who vaulted real cards, and what G-list wallets did with their exclusive launch mints. Built from raw on-chain logs, no Grail back-end data.</p>
+    <p>Who actually made money on Grail's card-backed tokens, whether they came through the Grail app or an aggregator, who vaulted real cards, and what GLIST wallets did with their exclusive launch mints. Built from raw on-chain logs, no Grail back-end data.</p>
   </div>
   <div class="slab">
     <span class="eyebrow">Data window</span>
@@ -122,15 +122,30 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
   </div>
 </header>
 <nav class="toc" aria-label="Sections">
-  <a href="#overview">Overview</a><a href="#profit">Who made money</a><a href="#venues">Grail app vs routers</a><a href="#packs">Packs &amp; exclusive mints</a><a href="#vault">Card vaulting</a><a href="#snipers">Snipers</a><a href="#glist">G-list wallets</a><a href="#method">How it's counted</a>
+  <a href="#overview">Overview</a><a href="#glist">GLIST</a><a href="#profit">Who made money</a><a href="#venues">Grail app vs routers</a><a href="#packs">Packs &amp; exclusive mints</a><a href="#vault">Card vaulting</a><a href="#snipers">Snipers</a><a href="#method">How it's counted</a>
 </nav>
 
 <section id="overview">
-  <div class="sec-head"><h2>Overview</h2><span class="q">All 26 Grail tokens, all-time.</span></div>
+  <div class="sec-head"><h2>Overview</h2><span class="q">Every Grail token on Base and Robinhood Chain, all-time.</span></div>
   <div class="kpis" id="kpis"></div>
   <div class="grid">
     <div class="panel c8"><h3>Daily volume and traders</h3><p class="sub">USDC through the Uniswap pools per day; new traders are wallets making their first-ever Grail swap that day.</p><div class="chart tall"><canvas id="c-daily"></canvas></div></div>
     <div class="panel c4"><h3>Tokens by volume</h3><p class="sub">All-time USDC volume and unique traders.</p><div class="tbl" style="max-height:380px;overflow:auto"><table id="t-tokens"></table></div></div>
+  </div>
+</section>
+
+<section id="glist">
+  <div class="sec-head"><h2>GLIST wallets</h2><span class="q">GLIST is Grail's allowlist for gated launches. Every wallet that bought a gated pack (Vitalik, Elon, Kai, Kirk, Swift, Allen, Coop, World Cup, Founder) is here, tagged by what it did with the mint: flipped it, sold part, held, or never redeemed.</span></div>
+  <div class="kpis" id="kpis-glist"></div>
+  <div class="kpis" id="kpis-glist-money"></div>
+  <div class="grid">
+    <div class="panel c8"><h3>What GLIST buyers did, launch by launch</h3><p class="sub">Buyers of each gated launch in order of release, split by outcome. Flipper = sold 90%+ of what they redeemed.</p><div class="chart"><canvas id="c-glist-launch"></canvas></div></div>
+    <div class="panel c4"><h3>How many launches each wallet joined</h3><p class="sub">Repeat participation across the gated launches.</p><div class="chart"><canvas id="c-glist-hist"></canvas></div></div>
+    <div class="panel c12">
+      <h3>The GLIST, wallet by wallet</h3><p class="sub">Sort any column. ROI counts sale proceeds plus what is still held at the current price against what the wallet paid for packs. Founder packs were free, so their ROI is blank.</p>
+      <div class="controls"><select id="f-glist"><option value="">All tags</option><option>Flipper</option><option>Partial seller</option><option>Holder</option><option>Unredeemed</option></select><select id="f-glist-launch"><option value="">Any launch</option></select><select id="f-glist-n"><option value="">Any participation</option><option value="2">2+ launches</option><option value="3">3+ launches</option><option value="5">5+ launches</option></select><input type="search" id="s-glist" placeholder="search wallet"><button id="b-copy" class="primary">Copy as CSV</button><span class="note" id="n-glist"></span></div>
+      <div class="tbl" style="max-height:640px;overflow:auto"><table id="t-glist"></table></div>
+    </div>
   </div>
 </section>
 
@@ -194,15 +209,6 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
   </div>
 </section>
 
-<section id="glist">
-  <div class="sec-head"><h2>G-list wallets</h2><span class="q">Every wallet that bought a gated pack, tagged by what it did with the mint. Copy the table as CSV; a full CSV export is also attached in chat.</span></div>
-  <div class="kpis" id="kpis-glist"></div>
-  <div class="panel">
-    <div class="controls"><select id="f-glist"><option value="">All tags</option><option>Flipper</option><option>Partial seller</option><option>Holder</option><option>Unredeemed</option></select><input type="search" id="s-glist" placeholder="search wallet or pack"><button id="b-copy" class="primary">Copy as CSV</button><span class="note" id="n-glist"></span></div>
-    <div class="tbl" style="max-height:600px;overflow:auto"><table id="t-glist"></table></div>
-  </div>
-</section>
-
 <section id="method">
   <div class="sec-head"><h2>How it's counted</h2></div>
   <div class="panel"><dl class="meth" id="meth"></dl></div>
@@ -239,7 +245,9 @@ const tip = {backgroundColor: css('--panel2'), titleColor: css('--ink'), bodyCol
 // ---- meta & KPIs
 document.getElementById('meta-window').textContent = `through block ${fmt.n(D.meta.head_block)} · ${fmt.date(D.meta.head_ts)} UTC`;
 document.getElementById('meta-tokens').textContent = `${D.meta.n_tokens} tokens · ${fmt.n(D.kpi.swaps)} swaps · ${fmt.n(D.kpi.traders)} traders`;
-document.getElementById('meta-gen').textContent = `generated ${new Date(D.meta.generated*1000).toISOString().slice(0,16).replace('T',' ')} UTC`;
+function ago(){ const m=Math.max(0,Math.round((Date.now()/1000-D.meta.generated)/60)); document.getElementById('meta-gen').textContent = `updated ${m<60?m+' min':Math.round(m/60)+' h'} ago · ${new Date(D.meta.generated*1000).toISOString().slice(0,16).replace('T',' ')} UTC`; }
+ago(); setInterval(ago, 60000);
+if ('__AUTO_RELOAD__'==='1') setTimeout(()=>location.reload(), 10*60*1000);  // hosted site: pick up the next data refresh
 function kpis(id, items){ document.getElementById(id).innerHTML = items.map(([l,v,s,c]) => `<div class="kpi ${c||''}"><span class="eyebrow">${l}</span><b>${v}</b>${s?`<small>${s}</small>`:''}</div>`).join(''); }
 const K = D.kpi;
 kpis('kpis', [['Volume', fmt.usd(K.volume), 'all pools, all time','hero'],['Swaps', fmt.n(K.swaps), 'on-chain trades'],['Traders', fmt.n(K.traders), `${fmt.n(K.bots)} bots excluded`],['Holders', fmt.n(K.holders), 'wallets with a balance now'],['In profit', fmt.pct(K.profitable_pct), 'of traders, realized + unrealized', K.profitable_pct>=50?'good':'bad'],['Grail-app traders', fmt.n(K.grail_app_users), 'swapped through grail.xyz at least once'],['Pack buyers', fmt.n(K.pack_buyers), `${fmt.n(K.redeemers)} redeemed a card`],['Card vaulters', fmt.n(K.vaulters), 'users who vaulted a physical card'],['Snipers', fmt.n(K.snipers), 'tagged wallets']]);
@@ -278,7 +286,7 @@ function table(id, cols, rows, opts={}){
   render(); return {update(newRows){rows=newRows; render();}};
 }
 const maxVol = Math.max(...D.tokens.map(t=>t.volume));
-table('t-tokens', [{k:'symbol',h:'Token',f:(v,r)=>`<b>${v}</b>`},{k:'volume',h:'Volume',num:1,f:v=>`<span class="bar" style="width:${Math.max(2,60*v/maxVol)}px"></span>${fmt.usd(v)}`},{k:'traders',h:'Traders',num:1,f:fmt.n},{k:'price',h:'Price',num:1,f:v=>'$'+v.toFixed(2)}], D.tokens, {sort:'volume'});
+table('t-tokens', [{k:'symbol',h:'Token',f:(v,r)=>`<b>${v}</b>${r.chain!=='Base'?` <span class="tag gold">${r.chain} · ${r.quote}</span>`:''}`},{k:'volume',h:'Volume',num:1,f:v=>`<span class="bar" style="width:${Math.max(2,60*v/maxVol)}px"></span>${fmt.usd(v)}`},{k:'traders',h:'Traders',num:1,f:fmt.n},{k:'price',h:'Price',num:1,f:v=>'$'+v.toFixed(2)}], D.tokens, {sort:'volume'});
 table('t-usage', [{k:'usage',h:'Usage'},{k:'traders',h:'Traders',num:1,f:fmt.n},{k:'profitable_pct',h:'In profit',num:1,f:v=>`<span class="bar ${v>=50?'b3':'b2'}" style="width:${v*0.8}px"></span>${fmt.pct(v)}`},{k:'median_pnl',h:'Median P&L',num:1,f:fmt.sgn},{k:'avg_pnl',h:'Avg P&L',num:1,f:fmt.sgn},{k:'volume',h:'Volume',num:1,f:fmt.usd}], D.profit_by_usage, {sort:'traders'});
 table('t-profit-venue', [{k:'venue',h:'Primary venue'},{k:'traders',h:'Traders',num:1,f:fmt.n},{k:'profitable_pct',h:'In profit',num:1,f:fmt.pct},{k:'median_pnl',h:'Median P&L',num:1,f:fmt.sgn},{k:'total_pnl',h:'Net P&L',num:1,f:fmt.sgn},{k:'volume',h:'Volume',num:1,f:fmt.usd}], D.profit_by_venue.filter(v=>v.traders>=5), {sort:'traders'});
 table('t-profit-token', [{k:'symbol',h:'Token',f:(v,r)=>`<b>${v}</b> <span class="note">${r.name}</span>`},{k:'traders',h:'Buyers',num:1,f:fmt.n},{k:'profitable_pct',h:'In profit',num:1,f:v=>`<span class="bar ${v>=50?'b3':'b2'}" style="width:${v*0.6}px"></span>${fmt.pct(v)}`},{k:'avg_pnl',h:'Avg P&L',num:1,f:fmt.sgn},{k:'total_pnl',h:'Net trader P&L',num:1,f:fmt.sgn},{k:'volume',h:'Volume',num:1,f:fmt.usd},{k:'price',h:'Price',num:1,f:v=>'$'+v.toFixed(2)}], D.profit_by_token, {sort:'volume'});
@@ -286,7 +294,7 @@ const wcols = [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'total',h:'Total P&L',num:1
 table('t-winners', wcols, D.top_winners, {limit:25}); table('t-losers', wcols, D.top_losers, {limit:25});
 table('t-venues', [{k:'venue',h:'Venue'},{k:'group',h:'Group',f:v=>`<span class="tag">${v}</span>`},{k:'swaps',h:'Swaps',num:1,f:fmt.n},{k:'volume',h:'Volume',num:1,f:v=>`<span class="bar" style="width:${Math.max(2,80*v/D.venues[0].volume)}px"></span>${fmt.usd(v)}`},{k:'traders',h:'Traders',num:1,f:fmt.n}], D.venues, {sort:'volume'});
 // packs
-if (D.pack_kpi){ const P=D.pack_kpi, F=D.pack_buyer_funnel||{}; kpis('kpis-packs', [['Pack revenue', fmt.usd(P.revenue), `${fmt.n(P.packs)} packs · ${fmt.n(P.draws)} card draws`,'hero'],['Pack buyers', fmt.n(P.buyers), 'unique wallets'],['Redeemed a card', fmt.n(F.redeemed), `${fmt.pct(100*F.redeemed/F.buyers)} of buyers`],['Sold after', fmt.n(F.sold), `${fmt.pct(100*F.sold/F.buyers)} of buyers sold any Grail token`],['Cards redeemed', fmt.n(P.redeems), `${fmt.tok(P.redeemed_tokens)} tokens released`],['G-list wallets', fmt.n(D.grailist_kpi.wallets), 'bought a gated pack']]); }
+if (D.pack_kpi){ const P=D.pack_kpi, F=D.pack_buyer_funnel||{}; kpis('kpis-packs', [['Pack revenue', fmt.usd(P.revenue), `${fmt.n(P.packs)} packs · ${fmt.n(P.draws)} card draws`,'hero'],['Pack buyers', fmt.n(P.buyers), 'unique wallets'],['Redeemed a card', fmt.n(F.redeemed), `${fmt.pct(100*F.redeemed/F.buyers)} of buyers`],['Sold after', fmt.n(F.sold), `${fmt.pct(100*F.sold/F.buyers)} of buyers sold any Grail token`],['Cards redeemed', fmt.n(P.redeems), `${fmt.tok(P.redeemed_tokens)} tokens released`],['GLIST wallets', fmt.n(D.grailist_kpi.wallets), 'bought a gated pack']]); }
 table('t-cohorts', [{k:'pack_series',h:'Pack',f:(v,r)=>`<b>${v}</b> <span class="tag ${r.pack_kind==='FOUNDER'?'gold':''}">${r.pack_kind}</span>`},{k:'token',h:'Token'},{k:'buyers',h:'Buyers',num:1,f:fmt.n},{k:'packs',h:'Packs',num:1,f:fmt.n},{k:'revenue',h:'Paid',num:1,f:fmt.usd},{k:'redeemed_pct',h:'Redeemed',num:1,f:v=>`<span class="bar b1" style="width:${v*60}px"></span>${fmt.pct1(v)}`},{k:'sold_pct',h:'Sold',num:1,f:v=>`<span class="bar b2" style="width:${v*60}px"></span>${fmt.pct1(v)}`},{k:'dumped_pct',h:'Dumped ≥90%',num:1,f:fmt.pct1},{k:'median_hours_to_sell',h:'Median time to sell',num:1,f:fmt.hrs},{k:'sold_usdc',h:'Sale proceeds',num:1,f:fmt.usd},{k:'holding_value',h:'Still held',num:1,f:fmt.usd},{k:'profitable_pct',h:'Buyers in profit',num:1,f:fmt.pct1},{k:'sniper_pct',h:'Snipers',num:1,f:fmt.pct1}], D.cohorts, {sort:'revenue'});
 table('t-packs', [{k:'pack_series',h:'Series'},{k:'pack_kind',h:'Kind',f:(v,r)=>`<span class="tag ${r.gated?'gold':''}">${v}${r.gated?' · gated':''}</span>`},{k:'packs',h:'Packs',num:1,f:fmt.n},{k:'buyers',h:'Buyers',num:1,f:fmt.n},{k:'revenue',h:'Revenue',num:1,f:fmt.usd},{k:'first',h:'First sale',f:fmt.date},{k:'last',h:'Last sale',f:fmt.date}], D.packs||[], {sort:'revenue'});
 const cohortCols = [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'pack_series',h:'Pack'},{k:'packs',h:'Packs',num:1},{k:'spent',h:'Paid',num:1,f:fmt.usd},{k:'redeemed',h:'Redeemed',f:v=>v?'<span class="tag good">yes</span>':'<span class="tag">no</span>'},{k:'redeemed_tokens',h:'Tokens',num:1,f:fmt.tok},{k:'pct_sold',h:'Sold %',num:1,f:v=>v>=0.9?`<span class="tag bad">${fmt.pct1(v)}</span>`:fmt.pct1(v)},{k:'sold_usdc',h:'Proceeds',num:1,f:fmt.usd},{k:'hours_to_sell',h:'Redeem→sell',num:1,f:fmt.hrs},{k:'sell_venue',h:'Sold via'},{k:'holding_value',h:'Held now',num:1,f:fmt.usd},{k:'roi',h:'ROI',num:1,f:v=>v==null?'—':`<span class="${v>0?'pos':'neg'}">${(v*100).toFixed(0)}%</span>`},{k:'sniper',h:'Sniper',f:v=>v?'<span class="tag warn">sniper</span>':''}];
@@ -308,15 +316,21 @@ const S=D.sniper_kpi; kpis('kpis-snipers', [['Sniper wallets', fmt.n(S.sniper_wa
 table('t-sniper-token', [{k:'symbol',h:'Token'},{k:'snipes',h:'Snipes',num:1},{k:'same_block',h:'Launch block',num:1},{k:'spend',h:'Spent',num:1,f:fmt.usd},{k:'pnl',h:'P&L',num:1,f:fmt.sgn},{k:'sold_24h_pct',h:'Sold <24h',num:1,f:fmt.pct}], D.sniper_by_token, {sort:'snipes'});
 table('t-sniper-rows', [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'tag',h:'Tag',f:v=>`<span class="tag ${v==='Serial sniper'?'bad':'warn'}">${v}</span>`},{k:'tokens_sniped',h:'Tokens',num:1},{k:'symbols',h:'Which',f:v=>`<span class="note">${v}</span>`},{k:'same_block',h:'Launch-block buys',num:1},{k:'min_delta_min',h:'Fastest',num:1,f:v=>v<=0?'block 0':v.toFixed(1)+' min'},{k:'snipe_spend',h:'Snipe spend',num:1,f:fmt.usd},{k:'pnl',h:'Snipe P&L',num:1,f:fmt.sgn},{k:'total_pnl',h:'All P&L',num:1,f:fmt.sgn},{k:'primary_venue',h:'Venue'}], D.sniper_rows, {sort:'tokens_sniped'});
 // glist
-const G=D.grailist_kpi; kpis('kpis-glist', [['G-list wallets', fmt.n(G.wallets), 'bought at least one gated pack','hero'],['Flippers', fmt.n(G.flippers), 'dumped ≥90% of a mint','bad'],['Partial sellers', fmt.n(G.partial), 'sold some'],['Holders', fmt.n(G.holders), 'redeemed, never sold','good'],['Unredeemed', fmt.n(G.unredeemed), 'still sitting in the card NFT'],['Also snipers', fmt.n(G.snipers), 'tagged in the sniper section']]);
-const gcols = [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'tag',h:'Tag',f:v=>`<span class="tag ${v==='Flipper'?'bad':v==='Holder'?'good':v==='Partial seller'?'warn':''}">${v}</span>`},{k:'series',h:'Packs',f:v=>`<span class="note">${v}</span>`},{k:'packs',h:'#',num:1},{k:'spent',h:'Paid',num:1,f:fmt.usd},{k:'avg_pct_sold',h:'Sold %',num:1,f:fmt.pct1},{k:'sold_usdc',h:'Proceeds',num:1,f:fmt.usd},{k:'holding_value',h:'Held now',num:1,f:fmt.usd},{k:'trader_pnl',h:'Trading P&L',num:1,f:fmt.sgn},{k:'trader_volume',h:'Volume',num:1,f:fmt.usd},{k:'primary_venue',h:'Venue'},{k:'sniper',h:'Sniper',f:v=>v?'<span class="tag warn">sniper</span>':''}];
+const G=D.grailist_kpi, GM=D.glist_money||{};
+kpis('kpis-glist', [['GLIST wallets', fmt.n(G.wallets), 'bought at least one gated pack','hero'],['Flippers', fmt.n(G.flippers), `${fmt.pct(100*G.flippers/G.wallets)} · dumped ≥90% of a mint`,'bad'],['Partial sellers', fmt.n(G.partial), 'sold some, kept some'],['Holders', fmt.n(G.holders), `${fmt.pct(100*G.holders/G.wallets)} · redeemed, never sold`,'good'],['Unredeemed', fmt.n(G.unredeemed), 'card NFT never opened'],['Also snipers', fmt.n(G.snipers), 'tagged in the sniper section']]);
+kpis('kpis-glist-money', [['Paid for gated packs', fmt.usd(GM.spent), 'USDC, all launches'],['Sale proceeds', fmt.usd(GM.proceeds), 'from selling the minted tokens', 'good'],['Still held', fmt.usd(GM.held), 'at current prices'],['In profit on mints', fmt.pct(GM.in_profit_pct), 'proceeds + held vs pack cost', GM.in_profit_pct>=50?'good':'bad'],['Repeat buyers', fmt.n(GM.repeat), `joined 2+ launches · ${fmt.n(GM.loyal)} joined 3+ and still hold`],['Trading P&L', fmt.usdS(GM.trading_pnl), 'GLIST wallets, all Grail swaps', GM.trading_pnl>=0?'good':'bad']]);
+if (D.glist_by_launch){ const L=D.glist_by_launch, C={'Flipper':css('--bad'),'Partial seller':css('--warn'),'Holder':css('--good'),'Unredeemed':css('--ink3')};
+  bar('c-glist-launch', L.launches, Object.keys(L.series).map(k=>({label:k, data:L.series[k], backgroundColor:C[k], borderRadius:1})), {plugins:{legend:{labels:{boxWidth:10}}, tooltip:tip}, scales:{x:{stacked:true, grid:{display:false}, ticks:{font:{size:11}}}, y:{stacked:true, grid:{color:css('--grid')}, border:{display:false}, title:{display:true,text:'buyers'}}}}); }
+if (D.glist_launch_hist) bar('c-glist-hist', D.glist_launch_hist.map(r=>r.launches+(r.launches===1?' launch':' launches')), [{label:'Wallets', data:D.glist_launch_hist.map(r=>r.wallets), backgroundColor:css('--gold'), borderRadius:2}], {plugins:{legend:{display:false}, tooltip:tip}, scales:{x:{grid:{display:false}, ticks:{font:{size:10}}}, y:{grid:{color:css('--grid')}, border:{display:false}}}});
+const gcols = [{k:'wallet',h:'Wallet',f:fmt.addr},{k:'tag',h:'Tag',f:v=>`<span class="tag ${v==='Flipper'?'bad':v==='Holder'?'good':v==='Partial seller'?'warn':''}">${v}</span>`},{k:'n_launches',h:'Launches',num:1},{k:'series',h:'Which',f:v=>`<span class="note">${v.replace(/ LAUNCH| Launch/g,'').replace(/;/g,' · ')}</span>`},{k:'packs',h:'Packs',num:1},{k:'spent',h:'Paid',num:1,f:fmt.usd},{k:'avg_pct_sold',h:'Sold %',num:1,f:fmt.pct1},{k:'sold_usdc',h:'Proceeds',num:1,f:fmt.usd},{k:'holding_value',h:'Held now',num:1,f:fmt.usd},{k:'roi',h:'Mint ROI',num:1,f:v=>v==null?'—':`<span class="${v>0?'pos':'neg'}">${(v*100).toFixed(0)}%</span>`},{k:'trader_pnl',h:'Trading P&L',num:1,f:fmt.sgn},{k:'trader_volume',h:'Volume',num:1,f:fmt.usd},{k:'primary_venue',h:'Trades via'},{k:'first_buy_ts',h:'First mint',f:fmt.date},{k:'sniper',h:'Sniper',f:v=>v?'<span class="tag warn">sniper</span>':''}];
 const glistT = table('t-glist', gcols, D.grailist, {sort:'spent'}); let glistRows = D.grailist;
-function filterG(){ const t=document.getElementById('f-glist').value, q=document.getElementById('s-glist').value.toLowerCase(); glistRows=D.grailist.filter(x=>(!t||x.tag===t)&&(!q||x.wallet.includes(q)||x.series.toLowerCase().includes(q))); glistT.update(glistRows); document.getElementById('n-glist').textContent=`${glistRows.length} wallets`; }
-document.getElementById('f-glist').onchange=filterG; document.getElementById('s-glist').oninput=filterG; filterG();
-document.getElementById('b-copy').onclick=async()=>{ const keys=['wallet','tag','series','packs','spent','avg_pct_sold','sold_usdc','holding_value','trader_pnl','trader_volume','primary_venue','usage','sniper','sniper_tag']; const csv=[keys.join(',')].concat(glistRows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))).join('\n'); try{ await navigator.clipboard.writeText(csv); document.getElementById('b-copy').textContent='Copied'; setTimeout(()=>document.getElementById('b-copy').textContent='Copy as CSV',1500);}catch(e){ document.getElementById('n-glist').textContent='Clipboard blocked; use the attached CSV.'; } };
+const gl_launches=[...new Set(D.grailist.flatMap(r=>r.series.split(';')))].sort(); document.getElementById('f-glist-launch').innerHTML='<option value="">Any launch</option>'+gl_launches.map(s=>`<option>${s}</option>`).join('');
+function filterG(){ const tg=document.getElementById('f-glist').value, la=document.getElementById('f-glist-launch').value, mn=+document.getElementById('f-glist-n').value||0, q=document.getElementById('s-glist').value.toLowerCase(); glistRows=D.grailist.filter(x=>(!tg||x.tag===tg)&&(!la||x.series.split(';').includes(la))&&(x.n_launches>=mn)&&(!q||x.wallet.includes(q))); glistT.update(glistRows); document.getElementById('n-glist').textContent=`${glistRows.length} wallets`; }
+['f-glist','f-glist-launch','f-glist-n'].forEach(id=>document.getElementById(id).onchange=filterG); document.getElementById('s-glist').oninput=filterG; filterG();
+document.getElementById('b-copy').onclick=async()=>{ const keys=['wallet','tag','n_launches','series','packs','spent','avg_pct_sold','sold_usdc','holding_value','roi','trader_pnl','trader_volume','primary_venue','usage','first_buy_ts','sniper','sniper_tag']; const csv=[keys.join(',')].concat(glistRows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))).join('\n'); try{ await navigator.clipboard.writeText(csv); document.getElementById('b-copy').textContent='Copied'; setTimeout(()=>document.getElementById('b-copy').textContent='Copy as CSV',1500);}catch(e){ document.getElementById('n-glist').textContent='Clipboard blocked here; use the CSV download in the footer.'; } };
 // methodology
 document.getElementById('meth').innerHTML = [
- ['Source','Every Swap, Mint and Burn event on the 26 Grail Uniswap V3 pools, every ERC-20 Transfer of the 26 tokens, every pack purchase and card redemption event on Grail\'s executor and vault contracts, plus the calling transaction of every swap. Fetched from a Base RPC and processed in DuckDB. Prices are the live pool prices from grail.xyz at generation time.'],
+ ['Source','Every Swap, Mint and Burn event on the Grail Uniswap V3 pools on Base, the Uniswap V4 pool of tokens on Robinhood Chain (gJENSEN trades against tokenized NVDA; its volume is converted to USD with the token\'s USD price from grail.xyz), every ERC-20 Transfer of the tokens, every pack purchase and card redemption event on Grail\'s executor and vault contracts, plus the calling transaction of every swap. Fetched from a Base RPC and processed in DuckDB. Prices are the live pool prices from grail.xyz at generation time.'],
  ['Who the trader is','The wallet whose net token balance moved in the swap transaction, not the relayer. Gasless Grail-app trades, Fomo smart-wallet trades and aggregator hops all resolve to the real user.'],
  ['Venue','The first contract the transaction called (tx.to). Grail = the Grail router, the older Grail swap contract, the pack executor, the 0x meta-transaction settler, or any transaction sent by Grail\'s gasless relayer. Fomo = ERC-4337 entrypoints and the relay router. Aggregators and Telegram bots by their canonical router addresses. Bots / Direct = the caller is the pool-level sender itself.'],
  ['P&L','Average-cost basis per wallet per token. Buys add cost. Card redemptions add tokens at the allocated pack price. Tokens received by transfer or airdrop are added at the pool price at that moment, so only price moves after receipt count. Sells realize proceeds minus basis. Unrealized = remaining tokens × current price − remaining basis. "In profit" = realized + unrealized > 0.'],

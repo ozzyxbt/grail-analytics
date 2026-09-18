@@ -10,6 +10,7 @@ mkdir -p data/raw data/parquet out
 $PY fetch_rpc.py main $HEAD
 $PY fetch_rpc.py exec $HEAD
 $PY fetch_rpc.py reserves $HEAD
+$PY fetch_robinhood.py        # tokens on Robinhood Chain (Uniswap V4), own RPC + cursor
 $PY decode.py
 $PY fetch_txs.py
 $PY analysis.py

@@ -1,9 +1,9 @@
 name: Refresh data and redeploy
 # Pulls new blocks from the public Base RPC (incremental via cached cursors), re-runs the analysis,
-# commits out/, and deploys the site. Runs daily; can be triggered by hand.
+# commits out/, and deploys the site. Runs every 20 minutes; can be triggered by hand.
 on:
   schedule:
-    - cron: '17 6 * * *'
+    - cron: '7,27,47 * * * *'   # every 20 minutes; runs are incremental (cached cursors), ~6-8 min each
   workflow_dispatch:
 permissions:
   contents: write
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 120
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

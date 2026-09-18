@@ -8,14 +8,14 @@ VAULT = "0x36b162de23e4e809d78fb0eae4a2272bc313d738"
 T_TRANSFER = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 JOB = sys.argv[1]; HEAD = int(sys.argv[2])
 toks = []
-for p in ['config/tokens_p1.json','config/tokens_p2.json','config/tokens_p3.json']: toks += json.load(open(p))['results']
+for p in ['config/tokens_p1.json','config/tokens_p2.json','config/tokens_p3.json']: toks += [t for t in json.load(open(p))['results'] if t.get('chain_id', 8453) == 8453]
 START = min(t['block_number'] for t in toks) - 100
 if JOB == 'main':
     ADDRS = sorted(set([t['pool_address'].lower() for t in toks] + [t['token_address'].lower() for t in toks] + [VAULT]))
     FILTERS = [dict(address=ADDRS), dict(address=USDC, topics=[T_TRANSFER, None, '0x'+VAULT[2:].rjust(64,'0')])]
     OUTS = ['data/raw/logs_main.jsonl', 'data/raw/logs_usdc_vault.jsonl']; cur = 'data/raw/rpc.cursor'
 elif JOB == 'reserves':
-    RES = [r['reserve_address'].lower() for r in json.load(open('config/reserves.json'))]
+    RES = [r['reserve_address'].lower() for r in json.load(open('config/reserves.json')) if r.get('chain_id', 8453) == 8453]
     FILTERS = [dict(address=RES)]
     OUTS = ['data/raw/logs_reserves.jsonl']; cur = 'data/raw/reserves.cursor'
 else:

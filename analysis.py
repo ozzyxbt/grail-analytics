@@ -7,10 +7,13 @@ con = duckdb.connect()
 GENESIS_TS = 1686789347
 toks = []
 for p in ['config/tokens_p1.json','config/tokens_p2.json','config/tokens_p3.json']: toks += json.load(open(p))['results']
+for t in toks:  # registry quirk: some entries carry the g-prefixed ticker in `name` instead of `symbol`
+    if not t['symbol'].startswith('g') and t['name'].startswith('g'): t['symbol'], t['name'] = t['name'], t['symbol']
 TOK = {t['symbol']: t for t in toks}
+CHAIN = {t['symbol']: ('Robinhood' if t.get('chain_id') == 4663 else 'Base') for t in toks}
 PRICE = {t['symbol']: float(t['market_price'] or 0) for t in toks}
 NAME = {t['symbol']: t['name'] for t in toks}
-POOLS = {t['pool_address'].lower() for t in toks}
+POOLS = {t['pool_address'].lower() for t in toks} | {t['v4_pool']['pool_manager_address'].lower() for t in toks if t.get('v4_pool')}
 packs = json.load(open('config/packs.json'))['packs']
 PACK = {p['pack_id']: p for p in packs}
 VAULT = "0x36b162de23e4e809d78fb0eae4a2272bc313d738"
@@ -20,7 +23,7 @@ GRAIL_OLD_ROUTER = "0x94df02cc6338e6b38f60a655ea893ea0c1c2961f"
 GRAIL_DEPLOYER = "0xcb5a9f6c4709c3bb8e37f729be10c6c2aa66aefe"
 GRAIL_RELAYERS = {"0x8c5a2bfb1b6bbc380abd6df6ee21679a3b6c0c93"}
 # Grail staff wallets: the admin list hard-coded in the grail.xyz front-end, the team inventory wallet,
-# and the wallet grailytics labels OURS. Excluded from traders, holders, pack cohorts and the G-list.
+# and the wallet grailytics labels OURS. Excluded from traders, holders, pack cohorts and the GLIST.
 GRAIL_TEAM = {'0xd748d069c675be1bcdd7868b42fdfe9c3eca478a','0xa00b7b0a79b88322f41a2c355587100159583fb8','0x2cd1e614ec851265463c77e8d5115852101cf343',
               '0x4d1382863382b2d93aa7d1a968586bf21e526c5b','0xa2875fe1a7579806e0ee42d408444124c3ba7d30','0x283fc513f1399ba53ac374a3976a71d238b5b1f3',
               '0x61f1e873402b18ea34ff27117cfbe578bfa9443c','0x390dfc1567d53a3f5277b8c2f8f70d119b0e910b','0x8a0c45b9276aedaabbae18afe42c1fcd8c379982'}
@@ -40,12 +43,12 @@ VENUES = [
  ('0x6a00','1068','Paraswap'),('0x6352','4e64','OpenOcean'),('0xd63b','1026','Odos'),('0x19ce','95a1','Odos'),('0xca42','9680','CoW Swap'),('0x9008','ab41','CoW Swap'),
  ('0x327d','5d86','Socket'),('0x80e3','5c69','Bebop'),('0xbbbb','ad5f','Bebop'),('0xb300','028d','Banana Gun'),('0x20f6','860c','Maestro'),
  ('0x8cc6','4c35','Sigma'),('0x5e83','cc81','Sigma'),('0xd0a4','e4bf','BasedBot'),('0xd7f1','696f','Zerion'),('0x0000','10e2','Rainbow'),
- ('0xca11','ca11','Bots / Direct'),('0xafa8','f5fd','Unknown App C'),('0x013b','9060','Unknown App D'),('0xbce8','ea93','Unknown App E'),('0x463a','fd18','Unknown App F'),('0xccc8','15be','Fomo'),('0xac4c','8b75','SushiSwap'),
+ ('0xca11','ca11','Bots / Direct'),('0xafa8','f5fd','Unknown App C'),('0x013b','9060','Unknown App D'),('0xbce8','ea93','Unknown App E'),('0xef16','e318','Unknown App E'),('0x302a','17ac','Unknown App E'),('0x8876','0904','Uniswap App'),('0x55c2','6599','Sigma'),('0x6505','40dc','Unknown App G'),('0xe492','ce2b','Unknown App G'),('0x6e2a','6919','Unknown App H'),('0x463a','fd18','Unknown App F'),('0xccc8','15be','Fomo'),('0xac4c','8b75','SushiSwap'),
 ]
 GRAIL_CONTRACTS = {EXEC, GRAIL_ROUTER, GRAIL_OLD_ROUTER}
 def venue_of(to, frm):
-    if to is None: return 'Contract deploy'
-    to = to.lower()
+    if not isinstance(to, str): return None   # no tx metadata (or contract creation)
+    to = to.lower(); frm = frm if isinstance(frm, str) else ''
     if to in GRAIL_CONTRACTS or frm in GRAIL_RELAYERS: return 'Grail'
     for pre, suf, lab in VENUES:
         if to.startswith(pre.lower()) and to.endswith(suf.lower()): return lab
@@ -66,6 +69,17 @@ lp = pd.read_parquet('data/parquet/lp.parquet'); inv = pd.read_parquet('data/par
 uv = pd.read_parquet('data/parquet/usdc_vault.parquet')
 pb = pd.read_parquet('data/parquet/pack_buys.parquet') if os.path.getsize('data/parquet/pack_buys.parquet') > 0 else pd.DataFrame()
 txs = pd.read_json('data/raw/txs.jsonl', lines=True) if os.path.exists('data/raw/txs.jsonl') else pd.DataFrame(columns=['hash','from','to','sel'])
+# other chains (Robinhood Chain V4 pools) are decoded by fetch_robinhood.py into the same schema
+for nm, ref in (('swaps_rh', 'swaps'), ('transfers_rh', 'xf'), ('lp_rh', 'lp')):
+    pth = f'data/parquet/{nm}.parquet'
+    if os.path.exists(pth):
+        extra = pd.read_parquet(pth)
+        if len(extra):
+            if ref == 'swaps': swaps = pd.concat([swaps, extra], ignore_index=True)
+            elif ref == 'xf': xf = pd.concat([xf, extra], ignore_index=True)
+            else: lp = pd.concat([lp, extra], ignore_index=True)
+if os.path.exists('data/raw/txs_rh.jsonl'):
+    txs = pd.concat([txs, pd.read_json('data/raw/txs_rh.jsonl', lines=True)], ignore_index=True)
 txs = txs.drop_duplicates('hash').rename(columns={'hash':'tx','from':'tx_from','to':'tx_to'})
 txs['tx_from'] = txs['tx_from'].str.lower(); txs['tx_to'] = txs['tx_to'].str.lower()
 for df in (swaps, xf, inv, uv): 
@@ -77,6 +91,7 @@ print('loaded swaps', len(swaps), 'transfers', len(xf), 'txs', len(txs), 'invent
 launch = lp[lp.kind=='mint'].groupby('symbol').block.min().rename('launch_block')
 first_swap = swaps.groupby('symbol').block.min().rename('first_swap_block')
 tokinfo = pd.DataFrame({'symbol': list(TOK)}).set_index('symbol').join(launch).join(first_swap)
+tokinfo = tokinfo.join(lp[lp.kind=='mint'].groupby('symbol').ts.min().rename('launch_ts')).join(swaps.groupby('symbol').ts.min().rename('first_swap_ts'))
 tokinfo['deploy_block'] = [TOK[s]['block_number'] for s in tokinfo.index]
 tokinfo['price'] = [PRICE[s] for s in tokinfo.index]
 
@@ -181,7 +196,7 @@ for (w, sym), p in pos.items():
         top_sell_venue=(p['sell_venues'].most_common(1)[0][0] if p['sell_venues'] else None)))
 pos_df = pd.DataFrame(rows)
 deploy_mints = mints.merge(tokinfo[['deploy_block']], left_on='symbol', right_index=True)
-TREASURY = set(deploy_mints[deploy_mints.block <= deploy_mints.deploy_block + 5].to) | {'0x390dfc1567d53a3f5277b8c2f8f70d119b0e910b', '0x94df02cc6338e6b38f60a655ea893ea0c1c2961f'}  # Grail inventory + team wallet (labelled OURS on grailytics)
+TREASURY = set(deploy_mints[deploy_mints.block <= deploy_mints.deploy_block + 5].to) | set(mints.sort_values(['block','li']).drop_duplicates('symbol').to) | {'0x390dfc1567d53a3f5277b8c2f8f70d119b0e910b', '0x94df02cc6338e6b38f60a655ea893ea0c1c2961f'}  # Grail inventory + team wallet (labelled OURS on grailytics)
 INFRA = POOLS | {VAULT, ZERO, EXEC, GRAIL_ROUTER, GRAIL_OLD_ROUTER, GRAIL_DEPLOYER} | TREASURY | GRAIL_TEAM
 print('treasury wallets', TREASURY)
 pos_df = pos_df[~pos_df.wallet.isin(INFRA)]
@@ -209,10 +224,10 @@ print('traders', len(traders), 'bots', int(w_stats.bot.sum()), 'profitable %', r
 
 # ---------- snipers: first buy vs launch
 fb_ = sw[sw.side=='buy'].sort_values('block').drop_duplicates(['actor','symbol'])[['actor','symbol','block','ts','usdc','venue','tx_to','tx_from']]
-fb_ = fb_.join(tokinfo[['launch_block','first_swap_block']], on='symbol')
+fb_ = fb_.join(tokinfo[['launch_block','first_swap_block','launch_ts','first_swap_ts']], on='symbol')
 fb_['delta_blocks'] = fb_.block - fb_.launch_block.fillna(fb_.first_swap_block)
-fb_['delta_min'] = fb_.delta_blocks * 2 / 60
-snipes = fb_[fb_.delta_blocks <= 150]  # within 5 minutes of first liquidity
+fb_['delta_min'] = (fb_.ts - fb_.launch_ts.fillna(fb_.first_swap_ts)) / 60      # time-based so it works on any chain's block time
+snipes = fb_[fb_.delta_min <= 5]  # within 5 minutes of first liquidity
 snipes = snipes.merge(pos_df[['wallet','symbol','realized','unrealized','total','qty','first_sell_ts','n_sell','sell_usdc']], left_on=['actor','symbol'], right_on=['wallet','symbol'], how='left')
 snipes['sold_within_24h'] = (snipes.first_sell_ts.notna()) & ((snipes.first_sell_ts - snipes.ts) <= 86400)
 snipes['same_block'] = snipes.delta_blocks <= 0
@@ -222,7 +237,14 @@ sniper_w['tag'] = np.select([(sniper_w.tokens_sniped>=3)|(sniper_w.same_block>=2
 
 # ---------- vaulting: every ERC-20 mint = physical card(s) entering the vault (amount / reserve multiplier). Recipient tells who vaulted.
 reserves = json.load(open('config/reserves.json'))
-MULT = {r['token_symbol']: float(r['multiplier'])/1e18 for r in reserves}
+def _mult(m):
+    m = float(m); return m/1e18 if m > 1e15 else m
+MULT = {r['token_symbol']: _mult(r['multiplier']) for r in reserves}
+EXTRA_RESERVES = []   # tokens on other chains carry their reserves inline in the token registry
+for sy, t in TOK.items():
+    if sy not in MULT and t.get('reserves'):
+        MULT[sy] = _mult(t['reserves'][0]['multiplier'])
+        EXTRA_RESERVES += [dict(token_symbol=sy, name=r['name'], backed_supply=r['backed_supply'], multiplier=r['multiplier'], psa_pop=r.get('psa_pop'), reserve_price=r.get('reserve_price'), reserve_address=r['reserve_address']) for r in t['reserves']]
 RES_ADDR = {r['reserve_address'].lower(): r['token_symbol'] for r in reserves}
 T_BACKED = '0x3789b3d374'  # BackedSupplyChanged: emitted when a physical card is vaulted
 T_XFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
@@ -233,7 +255,7 @@ nft = pd.DataFrame([dict(sym=RES_ADDR[l['a'].lower()], frm='0x'+l['t'][1][26:], 
 GRAIL_WALLETS = TREASURY | GRAIL_TEAM | {GRAIL_DEPLOYER, '0x9fcab3d5fa3c4cdf0b3e554f30bd290a5ad02118'}
 mint_df = mints.merge(tokinfo[['deploy_block']], left_on='symbol', right_index=True)
 mint_df['cards'] = [a / MULT.get(sy, 10000.0) for a, sy in zip(mint_df.amount, mint_df.symbol)]
-mint_df['remint'] = ~mint_df.tx.isin(vault_event_txs) if vault_event_txs else False
+mint_df['remint'] = (~mint_df.tx.isin(vault_event_txs) & (mint_df.symbol.map(CHAIN) == 'Base')) if vault_event_txs else False
 mint_df['vaulted_by'] = np.where(mint_df.remint, 'Cancelled redemption', np.where(mint_df.to.isin(GRAIL_WALLETS | POOLS | {VAULT}), 'Grail', 'User'))
 user_mints = mint_df[mint_df.vaulted_by == 'User']
 vault_rows = []
@@ -298,10 +320,10 @@ for r in user_mints.itertuples():
     else: what = 'Holding'
     vault_prov.append(dict(wallet=r.to, symbol=r.symbol, block=b, origin=origin, what=what, sold_tokens=sold_after, burned_tokens=burned_after))
 vault_prov = pd.DataFrame(vault_prov)
-vault_summary = dict(registry_cards=int(sum(r['backed_supply'] for r in reserves)), minted_cards=float(mint_df[~mint_df.remint].cards.sum()), remint_cards=float(mint_df[mint_df.remint].cards.sum()), grail_cards=float(mint_df[mint_df.vaulted_by=='Grail'].cards.sum()), user_cards=float(user_mints.cards.sum()),
+vault_summary = dict(registry_cards=int(sum(r['backed_supply'] for r in reserves) + sum(r['backed_supply'] for r in EXTRA_RESERVES)), minted_cards=float(mint_df[~mint_df.remint].cards.sum()), remint_cards=float(mint_df[mint_df.remint].cards.sum()), grail_cards=float(mint_df[mint_df.vaulted_by=='Grail'].cards.sum()), user_cards=float(user_mints.cards.sum()),
     grail_mints=int((mint_df.vaulted_by=='Grail').sum()), user_mints=int(len(user_mints)), burned_cards=float(burns.cards.sum()), burn_events=int(len(burns)), redemptions_cancelled=int(sum(1 for x in burn_rows if x['cancelled'])), redemptions_shipped=int(sum(1 for x in burn_rows if x['shipped'])), redemptions_pending=int(sum(1 for x in burn_rows if x['pending'])))
 vault_monthly = mint_df[~mint_df.remint].assign(month=pd.to_datetime(mint_df.ts, unit='s').dt.strftime('%Y-%m')).groupby(['month','vaulted_by']).cards.sum().unstack(fill_value=0)
-reserve_rows = [dict(token=r['token_symbol'], name=r['name'], cards=r['backed_supply'], tokens_per_card=MULT[r['token_symbol']], psa_pop=r['psa_pop'], reserve_price=r['reserve_price'], reserve_address=r['reserve_address']) for r in reserves]
+reserve_rows = [dict(token=r['token_symbol'], name=r['name'], cards=r['backed_supply'], tokens_per_card=_mult(r['multiplier']), psa_pop=r['psa_pop'], reserve_price=r['reserve_price'], reserve_address=r['reserve_address']) for r in list(reserves) + EXTRA_RESERVES]
 
 # ---------- exclusive mint cohorts (gated packs) : buyers -> redeemed -> sold
 cohort_rows, cohort_summary = [], []
@@ -348,7 +370,7 @@ holders['primary_group'] = holders.primary_group.fillna('No swaps (pack/transfer
 def pct(x): return None if x is None or (isinstance(x,float) and math.isnan(x)) else round(float(x)*100, 1)
 def q(df, cols): return json.loads(df[cols].to_json(orient='records')) if len(df) else []
 out = {}
-out['meta'] = dict(head_block=int(swaps.block.max()) if len(swaps) else None, head_ts=int(swaps.ts.max()) if len(swaps) else None, generated=int(time.time()), n_tokens=len(TOK), unknown_venues=q(unknown_to.reset_index().head(25), ['tx_to','n','vol']))
+out['meta'] = dict(head_block=int(swaps[swaps.symbol.map(CHAIN)=='Base'].block.max()) if len(swaps) else None, head_ts=int(swaps.ts.max()) if len(swaps) else None, chains=sorted(set(CHAIN.values())), generated=int(time.time()), n_tokens=len(TOK), unknown_venues=q(unknown_to.reset_index().head(25), ['tx_to','n','vol']))
 out['kpi'] = dict(volume=float(sw.usdc.sum()), swaps=int(len(sw)), traders=int(len(traders)), bots=int(w_stats.bot.sum()), holders=int(holders.w.nunique()),
     profitable_pct=pct(traders.profitable.mean()), realized_profitable_pct=pct((traders.realized>0).mean()), avg_pnl=float(traders.total.mean()) if len(traders) else 0, median_pnl=float(traders.total.median()) if len(traders) else 0,
     total_trader_pnl=float(traders.total.sum()), grail_app_users=int(traders.is_grail_app.sum()), pack_buyers=int(len(pack_buyers)), redeemers=int(inv.to.nunique()), vaulters=int(vault_df.wallet.nunique()) if len(vault_df) else 0,
@@ -416,13 +438,22 @@ gl = []
 if len(cdf):
     for w, g in cdf.groupby('wallet'):
         ws = w_stats.loc[w] if w in w_stats.index else None
-        gl.append(dict(wallet=w, packs=int(g.packs.sum()), series=';'.join(sorted(set(g.pack_series))), spent=float(g.spent.sum()), redeemed_any=bool(g.redeemed.any()), sold_any=bool(g.sold.any()), avg_pct_sold=float(g.pct_sold.mean()),
+        gl.append(dict(wallet=w, n_launches=int(g.pack_series.nunique()), first_buy_ts=int(g.first_buy_ts.min()), roi=(float((g.sold_usdc.sum()+g.holding_value.sum())/g.spent.sum()-1) if g.spent.sum() > 0 else None), packs=int(g.packs.sum()), series=';'.join(sorted(set(g.pack_series))), spent=float(g.spent.sum()), redeemed_any=bool(g.redeemed.any()), sold_any=bool(g.sold.any()), avg_pct_sold=float(g.pct_sold.mean()),
             sold_usdc=float(g.sold_usdc.sum()), holding_value=float(g.holding_value.sum()), sniper=bool(g.sniper.any()), sniper_tag=(sniper_w.tag.get(w) if w in sniper_w.index else ''),
             trader_volume=float(ws.volume) if ws is not None else 0.0, trader_pnl=float(ws.total) if ws is not None else 0.0, primary_venue=(ws.primary_venue if ws is not None else 'No swaps'), usage=(ws.usage if ws is not None else 'No swaps'),
             tag=('Flipper' if (g.pct_sold>=0.9).any() else ('Partial seller' if g.sold.any() else ('Holder' if g.redeemed.any() else 'Unredeemed')))))
 out['grailist'] = sorted(gl, key=lambda r: -r['spent'])
+_glp = pd.DataFrame(gl)
+if len(_glp):
+    out['glist_launch_hist'] = [dict(launches=int(k), wallets=int(v)) for k, v in _glp.n_launches.value_counts().sort_index().items()]
+    _c = cdf.copy(); _c['row_tag'] = np.where(~_c.redeemed, 'Unredeemed', np.where(_c.pct_sold >= 0.9, 'Flipper', np.where(_c.sold, 'Partial seller', 'Holder')))
+    _order = _c.groupby('pack_series').first_buy_ts.min().sort_values().index
+    _t = _c.groupby(['pack_series', 'row_tag']).size().unstack(fill_value=0).reindex(_order)
+    out['glist_by_launch'] = dict(launches=list(_t.index), series={k: [int(x) for x in _t[k]] for k in ['Flipper', 'Partial seller', 'Holder', 'Unredeemed'] if k in _t.columns})
+    out['glist_money'] = dict(spent=float(_glp.spent.sum()), proceeds=float(_glp.sold_usdc.sum()), held=float(_glp.holding_value.sum()), repeat=int((_glp.n_launches >= 2).sum()), loyal=int(((_glp.n_launches >= 3) & (_glp.tag.isin(['Holder', 'Partial seller']))).sum()),
+                             in_profit_pct=pct((_glp.roi.dropna() > 0).mean()) if _glp.roi.notna().any() else None, trading_pnl=float(_glp.trader_pnl.sum()))
 out['grailist_kpi'] = dict(wallets=len(gl), flippers=sum(1 for r in gl if r['tag']=='Flipper'), holders=sum(1 for r in gl if r['tag']=='Holder'), unredeemed=sum(1 for r in gl if r['tag']=='Unredeemed'), partial=sum(1 for r in gl if r['tag']=='Partial seller'), snipers=sum(1 for r in gl if r['sniper']))
-out['tokens'] = [dict(symbol=s, name=NAME[s], price=PRICE[s], supply=float(TOK[s]['total_supply'] or 0), tags=TOK[s]['tags'], launch_block=(int(tokinfo.launch_block[s]) if pd.notna(tokinfo.launch_block[s]) else None), volume=float(sw[sw.symbol==s].usdc.sum()), traders=int(sw[sw.symbol==s].actor.nunique())) for s in TOK]
+out['tokens'] = [dict(symbol=s, chain=CHAIN[s], quote=(TOK[s].get('peg_ticker') or 'USDC'), mcap=PRICE[s]*float(TOK[s]['circulating_supply'] or 0), name=NAME[s], price=PRICE[s], supply=float(TOK[s]['total_supply'] or 0), tags=TOK[s]['tags'], launch_block=(int(tokinfo.launch_block[s]) if pd.notna(tokinfo.launch_block[s]) else None), volume=float(sw[sw.symbol==s].usdc.sum()), traders=int(sw[sw.symbol==s].actor.nunique())) for s in TOK]
 out['tokens'].sort(key=lambda r: -r['volume'])
 os.makedirs('out', exist_ok=True)
 json.dump(out, open('out/analysis.json','w'), default=lambda o: None if (isinstance(o,float) and math.isnan(o)) else (o.item() if hasattr(o,'item') else str(o)))

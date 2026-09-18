@@ -14,7 +14,7 @@ T_INVENTORY = "0xf50a1042e41409060ea88cabc649b3142b62ff5ad4d6384c92ea870d2485485
 T_PACKBUY = "0x1993895c5254b172c48b279d517793076822e31474d52db025d44031dea78c82"
 T_PACKBUY_V1 = "0x4adcdeed5800ab60da6be727ddec42e7fdc9872d9b428860e4093b05e42b216c"
 toks = []
-for p in ['config/tokens_p1.json','config/tokens_p2.json','config/tokens_p3.json']: toks += json.load(open(p))['results']
+for p in ['config/tokens_p1.json','config/tokens_p2.json','config/tokens_p3.json']: toks += [t for t in json.load(open(p))['results'] if t.get('chain_id', 8453) == 8453]
 POOL = {t['pool_address'].lower(): t for t in toks}
 TOKEN = {t['token_address'].lower(): t for t in toks}
 for t in toks:  # token0 is the numerically lower address

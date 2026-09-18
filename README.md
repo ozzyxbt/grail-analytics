@@ -9,13 +9,14 @@ What it answers:
 - **Packs & exclusive mints** — gated LAUNCH / FOUNDER pack buyers (gVITALIK, gELON, gKAI, …): who redeemed, who sold, how fast, ROI.
 - **Card vaulting** — physical cards entering the vault, Grail-vaulted vs user-vaulted, reconciled against Grail's reserves registry; physical redemptions traced through the claim-NFT lifecycle (shipped / pending / cancelled).
 - **Snipers** — first buys within 5 minutes of a pool's first liquidity, tagged and scored.
-- **G-list wallets** — every gated-pack buyer with flipper / holder / unredeemed tags, exportable as CSV.
+- **GLIST wallets** — every gated-pack buyer with flipper / holder / unredeemed tags, exportable as CSV.
 
 ## How it works
 
 ```
 fetch_rpc.py      eth_getLogs over mainnet.base.org (2000-block ranges, batched, adaptive splitting, resumable)
                   jobs: main (26 pools + 26 tokens + pack vault, USDC->vault), exec (executor + routers), reserves (29 reserve NFTs)
+fetch_robinhood.py  Robinhood Chain (4663) tokens: Uniswap V4 PoolManager Swap/ModifyLiquidity by pool id, transfers, tx metadata; quote asset (tokenized NVDA) converted to USD
 fetch_txs.py      tx.from / tx.to / selector for every swap & pack tx via publicnode (100-per-batch), resumable
 decode.py         raw logs -> parquet tables: swaps, transfers, lp, inventory (redeems), usdc_vault, pack_buys, other
 analysis.py       DuckDB + pandas -> out/analysis.json + CSVs
@@ -64,6 +65,6 @@ Data sources: `mainnet.base.org`, `base-rpc.publicnode.com`, `grail.xyz/api`. No
 `build_dashboard.py` produces two files from `out/analysis.json`: `out/grail_dashboard.html` (fragment, for the Claude artifact) and `site/index.html` (full standalone page with CSV downloads, for static hosting).
 
 - **`.github/workflows/pages.yml`** deploys `site/` to GitHub Pages on every push that touches `out/`, the template or the build script.
-- **`.github/workflows/refresh.yml`** runs daily (06:17 UTC) and on demand: pulls new blocks incrementally (raw logs and cursors are kept in the Actions cache), re-runs the analysis, commits `out/`, and redeploys.
+- **`.github/workflows/refresh.yml`** runs every 20 minutes and on demand: pulls new blocks incrementally (raw logs and cursors are kept in the Actions cache), re-runs the analysis, commits `out/`, and redeploys.
 
 The site carries a footer disclaimer (independent project, not affiliated with Grail Labs, not financial advice) and credits grailytics.xyz for the venue contract map.
