@@ -269,17 +269,21 @@ burns = xf[xf.to == ZERO].copy(); burns['cards'] = [a / MULT.get(sy, 10000.0) fo
 _in = xf[xf.tx.isin(burns.tx) & ~xf.frm.isin({ZERO}) & xf.to.isin(set(burns.frm))].sort_values('li').drop_duplicates(['tx','symbol']).set_index(['tx','symbol']).frm
 burns['redeemer'] = [(_in.get((t, sy)) or f) for t, sy, f in zip(burns.tx, burns.symbol, burns.frm)]
 # --- provenance of each physical redemption (burn) and each user vault mint
+RESERVE_PRICE = {}
+for r in list(reserves) + EXTRA_RESERVES:
+    RESERVE_PRICE.setdefault(r['token_symbol'], float(r.get('reserve_price') or 0))
 def _hist(w, sym):
     ev = []
     for r in sw[(sw.actor==w)&(sw.symbol==sym)].itertuples():
-        ev.append((r.block, ('buy_app' if r.venue=='Grail' else 'buy_dex') if r.side=='buy' else ('sell_app' if r.venue=='Grail' else 'sell_dex'), r.tokens))
+        ev.append((r.block, ('buy_app' if r.venue=='Grail' else 'buy_dex') if r.side=='buy' else ('sell_app' if r.venue=='Grail' else 'sell_dex'), r.tokens, r.usdc))
     for r in inv[(inv.to==w)&(inv.symbol==sym)].itertuples(): ev.append((r.block, 'pack_pull', r.amount))
     for r in mints[(mints.to==w)&(mints.symbol==sym)].itertuples(): ev.append((r.block, 'vault_mint', r.amount))
     for r in burns[(burns.redeemer==w)&(burns.symbol==sym)].itertuples(): ev.append((r.block, 'burn', r.amount))
     for r in wallet_xf[(wallet_xf.to==w)&(wallet_xf.symbol==sym)].itertuples(): ev.append((r.block, 'xfer_in', r.amount))
     for r in wallet_xf[(wallet_xf.frm==w)&(wallet_xf.symbol==sym)].itertuples(): ev.append((r.block, 'xfer_out', r.amount))
     return sorted(ev)
-def _sum(ev, kinds, lo=-1, hi=10**12): return float(sum(a for b,k,a in ev if k in kinds and lo < b < hi))
+def _sum(ev, kinds, lo=-1, hi=10**12): return float(sum(e[2] for e in ev if e[1] in kinds and lo < e[0] < hi))
+def _usd(ev, kinds, lo=-1, hi=10**12): return float(sum(e[3] for e in ev if e[1] in kinds and len(e) > 3 and lo < e[0] < hi))
 def _hrs(b1, b2): return (b2-b1)*2/3600
 def fmt_tok(x): return f'{x:,.0f} tokens'
 burn_rows = []
@@ -309,7 +313,7 @@ burn_prov = pd.DataFrame(burn_rows)
 vault_prov = []
 for r in user_mints.itertuples():
     ev = _hist(r.to, r.symbol); b = r.block
-    prior_burn = [bb for bb,k,a in ev if k=='burn' and bb < b]
+    prior_burn = [e[0] for e in ev if e[1]=='burn' and e[0] < b]
     sold_after = _sum(ev,{'sell_app','sell_dex'},lo=b); burned_after = _sum(ev,{'burn'},lo=b); out_after = _sum(ev,{'xfer_out'},lo=b)
     origin = 'Vaulted after a physical redeem' if prior_burn else 'Vaulted card'
     frac = min(1.0, sold_after / r.amount)
@@ -318,7 +322,16 @@ for r in user_mints.itertuples():
     elif frac > 0: what = f'Sold {round(frac*100)}% of tokens'
     elif out_after >= r.amount*0.5: what = 'Moved to another wallet'
     else: what = 'Holding'
-    vault_prov.append(dict(wallet=r.to, symbol=r.symbol, block=b, origin=origin, what=what, sold_tokens=sold_after, burned_tokens=burned_after))
+    mint_price = price_at(r.symbol, b); mint_value = r.amount * mint_price
+    sold_usd = _usd(ev, {'sell_app','sell_dex'}, lo=b); sold_tok = min(sold_after, r.amount)
+    proceeds = sold_usd * (sold_tok / sold_after) if sold_after > 0 else 0.0          # pro-rate if they sold more than this mint
+    held_tok = max(0.0, r.amount - sold_tok - burned_after - out_after)
+    held_value = held_tok * PRICE.get(r.symbol, 0.0)
+    card_value_now = r.cards * RESERVE_PRICE.get(r.symbol, 0.0)
+    vault_prov.append(dict(wallet=r.to, symbol=r.symbol, block=b, origin=origin, what=what, sold_tokens=sold_after, burned_tokens=burned_after,
+        mint_price=mint_price, mint_value=mint_value, sold_tok=sold_tok, proceeds=proceeds, avg_sell_price=(proceeds/sold_tok if sold_tok else None),
+        held_tok=held_tok, held_value=held_value, total_value=proceeds + held_value, gain_vs_mint=proceeds + held_value - mint_value,
+        card_value_now=card_value_now, gain_vs_card=proceeds + held_value - card_value_now))
 vault_prov = pd.DataFrame(vault_prov)
 vault_summary = dict(registry_cards=int(sum(r['backed_supply'] for r in reserves) + sum(r['backed_supply'] for r in EXTRA_RESERVES)), minted_cards=float(mint_df[~mint_df.remint].cards.sum()), remint_cards=float(mint_df[mint_df.remint].cards.sum()), grail_cards=float(mint_df[mint_df.vaulted_by=='Grail'].cards.sum()), user_cards=float(user_mints.cards.sum()),
     grail_mints=int((mint_df.vaulted_by=='Grail').sum()), user_mints=int(len(user_mints)), burned_cards=float(burns.cards.sum()), burn_events=int(len(burns)), redemptions_cancelled=int(sum(1 for x in burn_rows if x['cancelled'])), redemptions_shipped=int(sum(1 for x in burn_rows if x['shipped'])), redemptions_pending=int(sum(1 for x in burn_rows if x['pending'])))
@@ -412,11 +425,17 @@ if len(cdf) and cdf.hours_to_sell.notna().any():
     out['hours_to_sell_hist']=[dict(bucket=l, n=int(((cdf.hours_to_sell>=lo)&(cdf.hours_to_sell<hi)).sum())) for l,lo,hi in zip(hl,hb[:-1],hb[1:])]
 # vaulting
 if len(vault_df):
-    vault_df = vault_df.merge(vault_prov[['wallet','symbol','block','origin','what']], on=['wallet','symbol','block'], how='left')
+    vault_df = vault_df.merge(vault_prov[['wallet','symbol','block','origin','what','mint_price','mint_value','sold_tok','proceeds','avg_sell_price','held_tok','held_value','total_value','gain_vs_mint','card_value_now','gain_vs_card']], on=['wallet','symbol','block'], how='left')
     out['vault_kpi'] = dict(vaulters=int(vault_df.wallet.nunique()), mints=int(len(vault_df)), cards=float(vault_df.cards.sum()), tokens_minted=float(vault_df.minted.sum()), value_now=float(sum(vault_df.minted*vault_df.symbol.map(PRICE))), sold_any_pct=pct((vault_df.n_sell>0).mean()), sold_after_pct=pct(vault_df.sold_after.mean()), **vault_summary)
     vt = vault_df.groupby('symbol').agg(vaulters=('wallet','nunique'), mints=('wallet','count'), cards=('cards','sum'), minted=('minted','sum'), sold_pct=('sold_after','mean')).reset_index().sort_values('minted', ascending=False)
     out['vault_by_token'] = q(vt, ['symbol','vaulters','mints','cards','minted','sold_pct'])
-    out['vault_rows'] = q(vault_df.sort_values('ts'), ['wallet','symbol','minted','cards','ts','origin','what','sold_usdc','still_holding'])
+    out['vault_rows'] = q(vault_df.sort_values('ts'), ['wallet','symbol','minted','cards','ts','origin','what','mint_price','mint_value','sold_tok','proceeds','avg_sell_price','held_tok','held_value','total_value','gain_vs_mint','card_value_now','gain_vs_card'])
+    vw = vault_df.groupby('wallet').agg(cards=('cards','sum'), tokens=('symbol', lambda s: ','.join(sorted(set(s)))), mint_value=('mint_value','sum'), proceeds=('proceeds','sum'), held_value=('held_value','sum'), total_value=('total_value','sum'), gain_vs_mint=('gain_vs_mint','sum'), card_value_now=('card_value_now','sum'), gain_vs_card=('gain_vs_card','sum'), first_ts=('ts','min')).reset_index()
+    vw['trading_pnl'] = vw.wallet.map(w_stats.total).fillna(0.0); vw['trading_volume'] = vw.wallet.map(w_stats.volume).fillna(0.0)
+    out['vault_wallets'] = q(vw.sort_values('gain_vs_mint', ascending=False), ['wallet','cards','tokens','mint_value','proceeds','held_value','total_value','gain_vs_mint','card_value_now','gain_vs_card','trading_pnl','trading_volume','first_ts'])
+    out['vault_pnl'] = dict(mint_value=float(vault_df.mint_value.sum()), proceeds=float(vault_df.proceeds.sum()), held_value=float(vault_df.held_value.sum()), total_value=float(vault_df.total_value.sum()),
+        gain_vs_mint=float(vault_df.gain_vs_mint.sum()), card_value_now=float(vault_df.card_value_now.sum()), gain_vs_card=float(vault_df.gain_vs_card.sum()),
+        wallets_up_vs_mint=int((vw.gain_vs_mint > 0).sum()), wallets_up_vs_card=int((vw.gain_vs_card > 0).sum()), wallets=int(len(vw)), avg_sell_discount=(float(1 - vault_df.proceeds.sum()/ (vault_df.sold_tok*vault_df.mint_price).sum()) if (vault_df.sold_tok*vault_df.mint_price).sum() > 0 else None))
 else: out['vault_kpi'] = dict(vaulters=0, mints=0, cards=0, tokens_minted=0, value_now=0, sold_any_pct=0, sold_after_pct=0, **vault_summary); out['vault_by_token']=[]; out['vault_rows']=[]
 out['mint_events'] = q(mint_df.sort_values('block'), ['symbol','to','amount','cards','block','ts','vaulted_by'])
 out['vault_monthly'] = dict(months=list(vault_monthly.index), grail=[float(x) for x in vault_monthly.get('Grail', pd.Series(0, index=vault_monthly.index))], user=[float(x) for x in vault_monthly.get('User', pd.Series(0, index=vault_monthly.index))])
