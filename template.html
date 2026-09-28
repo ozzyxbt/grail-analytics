@@ -97,7 +97,7 @@ input[type=search],select,button{font:inherit;font-size:13px;padding:6px 10px;bo
 button{cursor:pointer}
 button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);font-weight:600}
 .note{font-size:12.5px;color:var(--ink3)}
-.meth dt{font-weight:600;margin-top:10px} .meth dd{margin:2px 0 0;color:var(--ink2);max-width:80ch}
+.faq details{border-bottom:1px solid var(--line);padding:10px 0} .faq summary{cursor:pointer;font-weight:600;list-style:none} .faq summary::-webkit-details-marker{display:none} .faq summary::before{content:'+';display:inline-block;width:18px;color:var(--gold)} .faq details[open] summary::before{content:'−'} .faq p{margin:6px 0 0 18px;color:var(--ink2);max-width:75ch}
 .addr{font-family:"IBM Plex Mono",monospace;font-size:12px}
 .callout{border-left:3px solid var(--gold);background:var(--gold-soft);padding:10px 14px;margin:14px 0;color:var(--ink);max-width:80ch}
 .callout b{color:var(--gold-ink)}
@@ -122,7 +122,7 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
   </div>
 </header>
 <nav class="toc" aria-label="Sections">
-  <a href="#overview">Overview</a><a href="#glist">GLIST</a><a href="#profit">Who made money</a><a href="#venues">Grail app vs routers</a><a href="#packs">Packs &amp; exclusive mints</a><a href="#vault">Card vaulting</a><a href="#snipers">Snipers</a><a href="#launches">Launches &amp; momentum</a><a href="#toptokens">Top tokens</a><a href="#method">How it's counted</a>
+  <a href="#overview">Overview</a><a href="#glist">GLIST</a><a href="#profit">Who made money</a><a href="#venues">Grail app vs routers</a><a href="#packs">Packs &amp; exclusive mints</a><a href="#vault">Card vaulting</a><a href="#snipers">Snipers</a><a href="#launches">Launches &amp; momentum</a><a href="#toptokens">Top tokens</a><a href="#faq">FAQ</a>
 </nav>
 
 <section id="overview">
@@ -232,13 +232,23 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
   </div>
 </section>
 
-<section id="method">
-  <div class="sec-head"><h2>How it's counted</h2></div>
-  <div class="panel"><dl class="meth" id="meth"></dl></div>
+<section id="faq">
+  <div class="sec-head"><h2>FAQ</h2></div>
+  <div class="panel faq">
+    <details open><summary>Where does the data come from?</summary><p>Straight from the blockchain: every swap, transfer, pack purchase and card redemption on Base and Robinhood Chain, plus Grail's public token, pack and reserve registries. No private data, no API keys.</p></details>
+    <details><summary>How often does it update?</summary><p>Every 20 minutes. The "updated" stamp at the top tells you how fresh the numbers are.</p></details>
+    <details><summary>Who counts as a trader?</summary><p>The wallet that actually ended up with the tokens, even when a relayer, smart wallet or aggregator sat in the middle. Bots that call the pool directly and Grail's own wallets are left out.</p></details>
+    <details><summary>How is profit calculated?</summary><p>Average cost per wallet per token. Buys add cost, pack redemptions count the pack price, and tokens that arrive by transfer are priced at the moment they arrive. Realized profit is what selling brought in above cost; unrealized is what's still held, at today's price.</p></details>
+    <details><summary>What is a "venue"?</summary><p>The app or contract a wallet used to trade: the Grail app, Fomo, a Telegram bot, an aggregator, and so on. Every trade still settles in the same Uniswap pools.</p></details>
+    <details><summary>What is GLIST?</summary><p>Grail's allowlist for gated launches. Every wallet that bought a gated pack is on the list here, tagged as flipper, partial seller, holder or unredeemed.</p></details>
+    <details><summary>What is a sniper?</summary><p>A wallet whose first buy of a token landed within 5 minutes of the pool getting liquidity. Two or more tokens sniped, or a same-block buy, earns the tag.</p></details>
+    <details><summary>What is a cluster or bundle?</summary><p>Wallets that look controlled together: they bought in the same block through the same app at launch, one wallet spread tokens to several others in one transaction, or they pass tokens between each other. Wallets funded from one source but never linked on-chain are not caught, so it's a lower bound.</p></details>
+    <details><summary>How is card vaulting measured?</summary><p>Every physical card entering the vault mints tokens. If the tokens went to a Grail address, Grail vaulted the card; if they went to anyone else, a user did. Burning a full card's worth of tokens starts a physical redemption; the claim either ships or gets cancelled.</p></details>
+    <details><summary>Are the numbers exact?</summary><p>They reconcile with Grail's registry to the card and with public analytics to the dollar on the venues. Tags are heuristics, not facts about any person.</p></details>
+  </div>
 </section>
 <footer class="foot">
-  <p><b>Independent project.</b> Not affiliated with, endorsed by, or operated by Grail Labs. Nothing here is financial advice. Every figure is derived from public Base blockchain data and Grail's public registry endpoints; wallet tags (sniper, flipper, bot, venue) are heuristics described above, not statements of fact about any person.</p>
-  <p>Venue identification cross-checked against the contract map published by <a href="https://users.grailytics.xyz" target="_blank" rel="noopener">grailytics.xyz</a>. Charts by Chart.js. Source and pipeline: <a href="https://github.com/ozzyxbt/grail-analytics" target="_blank" rel="noopener">github.com/ozzyxbt/grail-analytics</a>.</p>
+  <p>Independent project, not affiliated with Grail. Not financial advice. All figures come from public on-chain data. <a href="https://github.com/ozzyxbt/grail-analytics" target="_blank" rel="noopener">Source</a></p>
   __CSV_LINKS__
 </footer>
 </div>
@@ -372,19 +382,4 @@ if (D.clusters){ const p1=v=>fmt.pct(v*100);
   table('t-clusters', [{k:'token',h:'Token',f:v=>`<b>${v}</b>`},{k:'buyers',h:'Buyers',num:1,f:fmt.n},{k:'clusters',h:'Clusters',num:1},{k:'clustered_wallets',h:'Clustered wallets',num:1},{k:'clustered_pct_of_buyers',h:'Of buyers',num:1,f:p1},{k:'largest_cluster',h:'Largest',num:1},{k:'launch_bundle_pct',h:'Bundle share of launch buys',num:1,f:p1},{k:'all_buys_by_clusters_pct',h:'Of all buys',num:1,f:p1},{k:'cluster_held_pct_circ',h:'Clusters hold (circ.)',num:1,f:p1},{k:'cluster_held_pct_wallets',h:'Clusters hold (wallet supply)',num:1,f:p1}], D.clusters.summary, {sort:'launch_bundle_pct'});
   table('t-clusters-detail', [{k:'token',h:'Token'},{k:'size',h:'Wallets',num:1},{k:'links',h:'Linked by',f:v=>String(v).split(',').map(x=>`<span class="tag">${x}</span>`).join(' ')},{k:'venues',h:'Entered via',f:v=>`<span class="note">${v||'—'}</span>`},{k:'launch_wallets',h:'In launch window',num:1},{k:'bought',h:'Bought',num:1,f:fmt.tok},{k:'sold_pct',h:'Sold',num:1,f:v=>p1(Math.min(v,1))},{k:'holds',h:'Holds now',num:1,f:fmt.tok},{k:'holds_pct_circ',h:'Of circ.',num:1,f:p1}], D.clusters.detail, {sort:'size'});
 }
-// methodology
-document.getElementById('meth').innerHTML = [
- ['Source','Every Swap, Mint and Burn event on the Grail Uniswap V3 pools on Base, the Uniswap V4 pool of tokens on Robinhood Chain (gJENSEN trades against tokenized NVDA; its volume is converted to USD with the token\'s USD price from grail.xyz), every ERC-20 Transfer of the tokens, every pack purchase and card redemption event on Grail\'s executor and vault contracts, plus the calling transaction of every swap. Fetched from a Base RPC and processed in DuckDB. Prices are the live pool prices from grail.xyz at generation time.'],
- ['Who the trader is','The wallet whose net token balance moved in the swap transaction, not the relayer. Gasless Grail-app trades, Fomo smart-wallet trades and aggregator hops all resolve to the real user.'],
- ['Venue','The first contract the transaction called (tx.to). Grail = the Grail router, the older Grail swap contract, the pack executor, the 0x meta-transaction settler, or any transaction sent by Grail\'s gasless relayer. Fomo = ERC-4337 entrypoints and the relay router. Aggregators and Telegram bots by their canonical router addresses. Bots / Direct = the caller is the pool-level sender itself.'],
- ['P&L','Average-cost basis per wallet per token. Buys add cost. Card redemptions add tokens at the allocated pack price. Tokens received by transfer or airdrop are added at the pool price at that moment, so only price moves after receipt count. Sells realize proceeds minus basis. Unrealized = remaining tokens × current price − remaining basis. "In profit" = realized + unrealized > 0.'],
- ['Bots','Wallets whose primary venue is Bots / Direct are excluded from trader counts and profitability but included in volume.'],
- ['Exclusive mints','Purchases of gated packs (LAUNCH and FOUNDER kinds) recorded by the executor\'s purchase event, matched to later card redemptions to the same wallet of the pack\'s token, then to that wallet\'s sells of the token after the redemption.'],
- ['Vaulter P&L','For each user card mint: proceeds are that wallet\'s sells of the token after the mint (pro-rated if it sold more than it minted), held value is the unsold remainder at the current pool price, mint value is the pool price at the mint block × tokens minted, and card value is Grail\'s current reserve price for that card type. Gain vs mint = proceeds + held − mint value; gain vs keeping the card = proceeds + held − card value now.'],
- ['Card vaulting','Every ERC-20 mint (Transfer from the zero address) that coincides with the reserve contract\'s backed-supply event is a physical card entering the vault; mints without that event are cancelled redemptions returning tokens and are excluded; cards = amount ÷ the reserve\'s tokens-per-card from grail.xyz/api/reserves. Mints to Grail\'s inventory contract, team wallet, deployer or other Grail-controlled addresses are Grail-vaulted; mints to anyone else are user-vaulted. Cross-checked against the registry\'s backed card count and against the reserve NFT mint recipients.'],
- ['Snipers','First buy of a token within 5 minutes of the pool\'s first liquidity event.'],
- ['Launch effects','Platform volume averaged over the 7 days after a launch divided by the 7 days before; spillover excludes the launched token. Spike day = volume above 1.5× the trailing 14-day median. Token-vs-volume: average daily return (last swap price of the day) on the platform\'s top-quartile volume days minus bottom-quartile days.'],
- ['Clusters','Union-find over three on-chain links: same block + same front-end contract at launch (3+ wallets), one wallet sending the token to 2–20 wallets in a single non-swap transaction, and direct wallet-to-wallet transfers where neither side has more than 6 counterparties. Clusters of 3+ wallets are reported. Funding-source links are not available from public RPCs, so this is a lower bound.'],
- ['Grail team','The deployer, the inventory contract and the team inventory wallet are excluded from traders, holders and vaulters. Other team wallets are not identifiable on-chain and may remain.'],
-].map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
 </script>
