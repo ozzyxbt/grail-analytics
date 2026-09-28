@@ -11,6 +11,7 @@ $PY fetch_rpc.py main $HEAD
 $PY fetch_rpc.py exec $HEAD
 $PY fetch_rpc.py reserves $HEAD
 $PY fetch_robinhood.py        # tokens on Robinhood Chain (Uniswap V4), own RPC + cursor
+$PY fetch_rh_packs.py         # Robinhood packs, redeems and launch NFT tiers
 $PY decode.py
 $PY fetch_txs.py
 $PY analysis.py

@@ -29,7 +29,7 @@ GRAIL_TEAM = {'0xd748d069c675be1bcdd7868b42fdfe9c3eca478a','0xa00b7b0a79b88322f4
               '0x61f1e873402b18ea34ff27117cfbe578bfa9443c','0x390dfc1567d53a3f5277b8c2f8f70d119b0e910b','0x8a0c45b9276aedaabbae18afe42c1fcd8c379982'}
 ZERO = "0x" + "0"*40
 # pack -> token mapping (LAUNCH packs are single-token); genesis packs span many tokens
-PACK_TOKEN = {'VITALIKLAUNCH':'gVITALIK','KAILAUNCHPACKS':'gKAI','ALLENLAUNCH':'gALLEN','COOPLAUNCH':'gCOOP','KIRKLAUNCHPACKS1':'gKIRK','KIRKLAUNCHPACK':'gKIRK','SWIFTLAUNCH':'gSWIFT','ELONLAUNCH':'gELON'}
+PACK_TOKEN = {'JENSENLAUNCH':'gJENSEN','VLADLAUNCH':'gVLAD','VITALIKLAUNCH':'gVITALIK','KAILAUNCHPACKS':'gKAI','ALLENLAUNCH':'gALLEN','COOPLAUNCH':'gCOOP','KIRKLAUNCHPACKS1':'gKIRK','KIRKLAUNCHPACK':'gKIRK','SWIFTLAUNCH':'gSWIFT','ELONLAUNCH':'gELON'}
 
 # ---------- venue map: (prefix, suffix) -> label. Prefixes/suffixes from grailytics + known canonical addresses.
 VENUES = [
@@ -78,6 +78,13 @@ for nm, ref in (('swaps_rh', 'swaps'), ('transfers_rh', 'xf'), ('lp_rh', 'lp')):
             if ref == 'swaps': swaps = pd.concat([swaps, extra], ignore_index=True)
             elif ref == 'xf': xf = pd.concat([xf, extra], ignore_index=True)
             else: lp = pd.concat([lp, extra], ignore_index=True)
+for nm in ('pack_buys_rh', 'inventory_rh'):
+    pth = f'data/parquet/{nm}.parquet'
+    if os.path.exists(pth) and os.path.getsize(pth) > 0:
+        extra = pd.read_parquet(pth)
+        if len(extra):
+            if nm == 'pack_buys_rh': pb = pd.concat([pb, extra.drop(columns=['chain'], errors='ignore')], ignore_index=True)
+            else: inv = pd.concat([inv, extra.drop(columns=['chain'], errors='ignore')], ignore_index=True)
 if os.path.exists('data/raw/txs_rh.jsonl'):
     txs = pd.concat([txs, pd.read_json('data/raw/txs_rh.jsonl', lines=True)], ignore_index=True)
 txs = txs.drop_duplicates('hash').rename(columns={'hash':'tx','from':'tx_from','to':'tx_to'})
@@ -242,7 +249,7 @@ def _mult(m):
 MULT = {r['token_symbol']: _mult(r['multiplier']) for r in reserves}
 EXTRA_RESERVES = []   # tokens on other chains carry their reserves inline in the token registry
 for sy, t in TOK.items():
-    if sy not in MULT and t.get('reserves'):
+    if sy not in MULT and t.get('reserves') and sy not in {r['token_symbol'] for r in reserves}:
         MULT[sy] = _mult(t['reserves'][0]['multiplier'])
         EXTRA_RESERVES += [dict(token_symbol=sy, name=r['name'], backed_supply=r['backed_supply'], multiplier=r['multiplier'], psa_pop=r.get('psa_pop'), reserve_price=r.get('reserve_price'), reserve_address=r['reserve_address']) for r in t['reserves']]
 RES_ADDR = {r['reserve_address'].lower(): r['token_symbol'] for r in reserves}
@@ -253,7 +260,7 @@ vault_event_txs = {l['tx'] for l in _rl if l['t'][0].startswith(T_BACKED)}
 nft = pd.DataFrame([dict(sym=RES_ADDR[l['a'].lower()], frm='0x'+l['t'][1][26:], to='0x'+l['t'][2][26:], token_id=int(l['t'][3],16), block=l['b'], ts=GENESIS_TS+2*l['b'], tx=l['tx']) for l in _rl if l['t'][0]==T_XFER and len(l['t'])==4])
 
 GRAIL_WALLETS = TREASURY | GRAIL_TEAM | {GRAIL_DEPLOYER, '0x9fcab3d5fa3c4cdf0b3e554f30bd290a5ad02118'}
-mint_df = mints.merge(tokinfo[['deploy_block']], left_on='symbol', right_index=True)
+mint_df = mints[mints.symbol.map(CHAIN) == 'Base'].merge(tokinfo[['deploy_block']], left_on='symbol', right_index=True)   # physical-card vaulting is a Base-token phenomenon; Robinhood items are single collectibles
 mint_df['cards'] = [a / MULT.get(sy, 10000.0) for a, sy in zip(mint_df.amount, mint_df.symbol)]
 mint_df['remint'] = (~mint_df.tx.isin(vault_event_txs) & (mint_df.symbol.map(CHAIN) == 'Base')) if vault_event_txs else False
 mint_df['vaulted_by'] = np.where(mint_df.remint, 'Cancelled redemption', np.where(mint_df.to.isin(GRAIL_WALLETS | POOLS | {VAULT}), 'Grail', 'User'))
@@ -333,7 +340,7 @@ for r in user_mints.itertuples():
         held_tok=held_tok, held_value=held_value, total_value=proceeds + held_value, gain_vs_mint=proceeds + held_value - mint_value,
         card_value_now=card_value_now, gain_vs_card=proceeds + held_value - card_value_now))
 vault_prov = pd.DataFrame(vault_prov)
-vault_summary = dict(registry_cards=int(sum(r['backed_supply'] for r in reserves) + sum(r['backed_supply'] for r in EXTRA_RESERVES)), minted_cards=float(mint_df[~mint_df.remint].cards.sum()), remint_cards=float(mint_df[mint_df.remint].cards.sum()), grail_cards=float(mint_df[mint_df.vaulted_by=='Grail'].cards.sum()), user_cards=float(user_mints.cards.sum()),
+vault_summary = dict(registry_cards=int(sum(r['backed_supply'] for r in reserves if CHAIN.get(r['token_symbol']) == 'Base')), minted_cards=float(mint_df[~mint_df.remint].cards.sum()), remint_cards=float(mint_df[mint_df.remint].cards.sum()), grail_cards=float(mint_df[mint_df.vaulted_by=='Grail'].cards.sum()), user_cards=float(user_mints.cards.sum()),
     grail_mints=int((mint_df.vaulted_by=='Grail').sum()), user_mints=int(len(user_mints)), burned_cards=float(burns.cards.sum()), burn_events=int(len(burns)), redemptions_cancelled=int(sum(1 for x in burn_rows if x['cancelled'])), redemptions_shipped=int(sum(1 for x in burn_rows if x['shipped'])), redemptions_pending=int(sum(1 for x in burn_rows if x['pending'])))
 vault_monthly = mint_df[~mint_df.remint].assign(month=pd.to_datetime(mint_df.ts, unit='s').dt.strftime('%Y-%m')).groupby(['month','vaulted_by']).cards.sum().unstack(fill_value=0)
 reserve_rows = [dict(token=r['token_symbol'], name=r['name'], cards=r['backed_supply'], tokens_per_card=_mult(r['multiplier']), psa_pop=r['psa_pop'], reserve_price=r['reserve_price'], reserve_address=r['reserve_address']) for r in list(reserves) + EXTRA_RESERVES]
@@ -418,6 +425,13 @@ if len(pb):
     pbuy['redeemed'] = pbuy.index.isin(set(inv.to)); pbuy['sold'] = pbuy.index.isin(set(sw[sw.side=='sell'].actor)); pbuy['traded'] = pbuy.index.isin(set(sw.actor))
     out['pack_buyer_funnel'] = dict(buyers=int(len(pbuy)), redeemed=int(pbuy.redeemed.sum()), sold=int(pbuy.sold.sum()), traded=int(pbuy.traded.sum()), spent=float(pbuy.spent.sum()))
 out['cohorts'] = sorted(cohort_summary, key=lambda r: -r['revenue'])
+if os.path.exists('data/parquet/nft_tiers_rh.parquet'):
+    _t = pd.read_parquet('data/parquet/nft_tiers_rh.parquet'); out['nft_tiers'] = q(_t, list(_t.columns))
+    _m = pd.read_parquet('data/parquet/nft_mints_rh.parquet') if os.path.exists('data/parquet/nft_mints_rh.parquet') else pd.DataFrame()
+    if len(_m):
+        _m['to'] = _m.to.str.lower(); _m = _m.merge(_t[['collection','name','tokens_per_card']], on='collection', how='left')
+        _w = _m.groupby('to').agg(draws=('token_id','count'), tiers=('name', lambda s_: ' · '.join(f"{k}×{v}" for k, v in s_.value_counts().items())), tokens=('tokens_per_card','sum')).reset_index().rename(columns={'to':'wallet'}).sort_values('tokens', ascending=False)
+        out['nft_pulls'] = q(_w, ['wallet','draws','tiers','tokens'])
 out['cohort_rows'] = q(cdf.sort_values(['pack_series','spent'], ascending=[True,False]), ['pack_series','pack_kind','token','wallet','packs','spent','redeemed','redeemed_tokens','sold','pct_sold','sold_usdc','hours_to_sell','sell_venue','holding_value','roi','sniper']) if len(cdf) else []
 # redeem timing distribution by hours to sell for launch cohorts
 if len(cdf) and cdf.hours_to_sell.notna().any():
