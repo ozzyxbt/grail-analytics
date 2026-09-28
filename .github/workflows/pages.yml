@@ -3,7 +3,7 @@ name: Deploy dashboard to GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ['out/**', 'template.html', 'build_dashboard.py', '.github/workflows/pages.yml']
+    paths: ['out/**', 'template.html', 'build_dashboard.py', 'og_image.py', 'assets/**', 'requirements.txt', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,7 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: '3.12' }
+        with: { python-version: '3.12', cache: 'pip' }
+      - run: pip install -r requirements.txt
       - run: python build_dashboard.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
