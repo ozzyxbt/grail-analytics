@@ -20,7 +20,8 @@ fetch_robinhood.py  Robinhood Chain (4663) tokens: Uniswap V4 PoolManager Swap/M
 fetch_txs.py      tx.from / tx.to / selector for every swap & pack tx via publicnode (100-per-batch), resumable
 decode.py         raw logs -> parquet tables: swaps, transfers, lp, inventory (redeems), usdc_vault, pack_buys, other
 analysis.py       DuckDB + pandas -> out/analysis.json + CSVs
-build_dashboard.py  inlines analysis.json into template.html -> out/grail_dashboard.html
+build_dashboard.py  inlines analysis.json into template.html -> out/grail_dashboard.html + site/index.html (with Open Graph / Twitter Card tags)
+og_image.py       renders site/og.png, the 1200x630 share card, with live numbers (set SITE_URL to change the absolute image URL)
 ```
 
 Key on-chain facts the pipeline relies on (all on Base, chain id 8453):
