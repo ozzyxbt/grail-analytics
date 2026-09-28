@@ -3,9 +3,12 @@ top-20 holder sell behaviour, and aggregate cost basis of current holders.
 Usage: python topn.py [N]   (reads data/parquet/derived_*.parquet written by analysis.py)"""
 import sys, json
 import pandas as pd, numpy as np
-N = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+import argparse
+ap = argparse.ArgumentParser(); ap.add_argument('n', nargs='?', type=int, default=5); ap.add_argument('--exclude', default=''); ap.add_argument('--include', default='')
+A = ap.parse_args(); N = A.n
 tok = pd.read_parquet('data/parquet/derived_tokens.parquet').sort_values('mcap', ascending=False)
-top = list(tok.symbol.head(N))
+excl = {x for x in A.exclude.split(',') if x}; incl = [x for x in A.include.split(',') if x]
+top = incl + [s for s in tok.symbol if s not in excl and s not in incl][:max(0, N - len(incl))]
 sw = pd.read_parquet('data/parquet/derived_swaps.parquet')
 sn = pd.read_parquet('data/parquet/derived_snipes.parquet')
 pos = pd.read_parquet('data/parquet/derived_positions.parquet')
@@ -49,7 +52,7 @@ for s in top:
     top20_rows.append(top20.assign(symbol=s)[['symbol','w','amount','bought','redeemed','xfer_in','sold','sell_ratio','is_sniper']])
 R = pd.DataFrame(rows)
 pd.set_option('display.width', 250); pd.set_option('display.float_format', lambda x: f'{x:,.2f}')
-print('TOP', N, 'BY MARKET CAP\n')
+print('TOKENS:', top, '\n')
 print(R[['token','chain','mcap','price','buyers','snipers','sniper_share_of_buyers','sniper_share_of_buy_volume']].to_string(index=False))
 print('\nSUPPLY HELD BY SNIPERS')
 print(R[['token','circulating','supply_held_by_wallets','sniper_held','sniper_held_pct_of_circ','sniper_held_pct_of_wallet_supply']].to_string(index=False))

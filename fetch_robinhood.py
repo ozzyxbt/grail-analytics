@@ -124,18 +124,25 @@ tx_path = 'data/raw/txs_rh.jsonl'
 done = {json.loads(x)['hash'] for x in open(tx_path)} if os.path.exists(tx_path) else set()
 todo = sorted(set(sw.tx) - done) if len(sw) else []
 f = open(tx_path, 'a')
-for i in range(0, len(todo), 30):      # batched: 30 lookups per request is the sweet spot under this RPC's rate limit
-    chunk = todo[i:i+30]
+skipped = 0
+for i in range(0, len(todo), 20):      # batched: 20 lookups per request under this RPC's rate limit
+    chunk = todo[i:i+20]
     batch = [{"jsonrpc": "2.0", "id": k, "method": "eth_getTransactionByHash", "params": [h]} for k, h in enumerate(chunk)]
-    for a in range(12):
+    j = None
+    for a in range(8):
         try:
-            j = S.post(RPC, data=json.dumps(batch), headers=H, timeout=90).json()
-            if isinstance(j, list) and all(x.get('result') for x in j): break
+            r = S.post(RPC, data=json.dumps(batch), headers=H, timeout=90).json()
+            if isinstance(r, list):
+                j = r
+                if all(x.get('result') for x in r) or a >= 4: break     # tolerate a few unknown hashes
         except Exception: pass
-        time.sleep(1.5 + a)
-    else: raise RuntimeError('tx batch gave up')
+        time.sleep(2 + 2*a)
+    if not isinstance(j, list):
+        skipped += len(chunk); time.sleep(5); continue
     for x in j:
-        r = x['result']; f.write(json.dumps({'hash': r['hash'], 'from': r['from'], 'to': r['to'], 'sel': r['input'][:10]}) + '\n')
-    f.flush(); time.sleep(0.4)
+        r = x.get('result')
+        if r: f.write(json.dumps({'hash': r['hash'], 'from': r['from'], 'to': r['to'], 'sel': r['input'][:10]}) + '\n')
+    f.flush(); time.sleep(0.6)
+if skipped: print('robinhood: tx batches skipped for', skipped, 'hashes (will retry next run)')
 f.close()
 print('robinhood: tx metadata fetched', len(todo), 'transfers', len(xfers), 'lp events', len(lp))
