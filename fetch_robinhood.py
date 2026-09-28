@@ -10,7 +10,7 @@ H = {'content-type': 'application/json', 'user-agent': 'grail-analytics/0.1'}
 T_SWAP = '0x40e9cecb9f5f1f1c5b9c97dec2917b7ee92e57ba5563708daca94dd84ad7112f'      # V4 Swap(id, sender, amount0, amount1, sqrtPriceX96, liquidity, tick, fee)
 T_MODLIQ = '0xf208f4912782fd25c7f114ca3723a2d5dd6f3bcc3ac8db5af63baa85f711d5ec'    # V4 ModifyLiquidity(id, sender, tickLower, tickUpper, liquidityDelta, salt)
 T_TRANSFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-RNG = 500_000
+RNG = 100_000
 S = requests.Session()
 
 def rpc(method, params, tries=12):

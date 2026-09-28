@@ -475,6 +475,13 @@ out['grailist_kpi'] = dict(wallets=len(gl), flippers=sum(1 for r in gl if r['tag
 out['tokens'] = [dict(symbol=s, chain=CHAIN[s], quote=(TOK[s].get('peg_ticker') or 'USDC'), mcap=PRICE[s]*float(TOK[s]['circulating_supply'] or 0), name=NAME[s], price=PRICE[s], supply=float(TOK[s]['total_supply'] or 0), tags=TOK[s]['tags'], launch_block=(int(tokinfo.launch_block[s]) if pd.notna(tokinfo.launch_block[s]) else None), volume=float(sw[sw.symbol==s].usdc.sum()), traders=int(sw[sw.symbol==s].actor.nunique())) for s in TOK]
 out['tokens'].sort(key=lambda r: -r['volume'])
 os.makedirs('out', exist_ok=True)
+# derived tables for ad-hoc queries
+pos_df.to_parquet('data/parquet/derived_positions.parquet', index=False)
+holders.to_parquet('data/parquet/derived_holders.parquet', index=False)
+snipes.to_parquet('data/parquet/derived_snipes.parquet', index=False)
+w_stats.reset_index().rename(columns={'actor':'wallet'}).drop(columns=['venues']).to_parquet('data/parquet/derived_wallets.parquet', index=False)
+sw.drop(columns=['week'], errors='ignore').to_parquet('data/parquet/derived_swaps.parquet', index=False)
+pd.DataFrame([dict(symbol=s_, chain=CHAIN[s_], price=PRICE[s_], circulating=float(TOK[s_]['circulating_supply'] or 0), total_supply=float(TOK[s_]['total_supply'] or 0), mcap=PRICE[s_]*float(TOK[s_]['circulating_supply'] or 0)) for s_ in TOK]).to_parquet('data/parquet/derived_tokens.parquet', index=False)
 json.dump(out, open('out/analysis.json','w'), default=lambda o: None if (isinstance(o,float) and math.isnan(o)) else (o.item() if hasattr(o,'item') else str(o)))
 pd.DataFrame(out['grailist']).to_csv('out/grailist.csv', index=False)
 if len(cdf): cdf.to_csv('out/exclusive_mint_cohorts.csv', index=False)

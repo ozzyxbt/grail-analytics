@@ -17,16 +17,20 @@ f = open(out, 'a'); S = requests.Session(); t0 = time.time()
 for i in range(0, len(todo), 100):
     chunk = todo[i:i+100]
     batch = [{"jsonrpc":"2.0","id":k,"method":"eth_getTransactionByHash","params":[h]} for k, h in enumerate(chunk)]
-    for attempt in range(10):
+    j = None
+    for attempt in range(6):
         try:
             j = S.post(RPC, data=json.dumps(batch), headers=H, timeout=120).json()
-            if isinstance(j, dict) or any(not x.get('result') for x in j): raise RuntimeError(str(j)[:200])
-            break
+            if isinstance(j, dict): raise RuntimeError(str(j)[:200])
+            missing = [x for x in j if not x.get('result')]
+            if not missing or attempt >= 2: break          # a few hashes may be unknown to this node; skip them after 3 tries
+            raise RuntimeError(f'{len(missing)} missing in batch')
         except Exception as e:
             print('retry', attempt, str(e)[:150], flush=True); time.sleep(3 + 3*attempt)
-            if attempt == 9: raise
+    if not isinstance(j, list): raise RuntimeError('batch failed')
     for x in j:
-        r = x['result']
+        r = x.get('result')
+        if not r: continue
         f.write(json.dumps({'hash': r['hash'], 'from': r['from'], 'to': r['to'], 'sel': r['input'][:10], 'nonce': int(r['nonce'],16), 'gas_price': int(r.get('gasPrice','0x0'),16), 'type': r.get('type'), 'value': int(r['value'],16)}) + '\n')
     f.flush()
     if (i // 100) % 50 == 0: print(time.strftime('%H:%M:%S'), i, '/', len(todo), 'elapsed', round(time.time()-t0), flush=True)
