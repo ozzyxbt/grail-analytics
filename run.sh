@@ -14,5 +14,8 @@ $PY fetch_robinhood.py        # tokens on Robinhood Chain (Uniswap V4), own RPC 
 $PY decode.py
 $PY fetch_txs.py
 $PY analysis.py
+$PY topn.py 5 --exclude gMJ --include gVLAD
+$PY clusters.py gVLAD,gSPEED,gJENSEN,gELON,gVITALIK
+$PY launch_effects.py 90
 $PY build_dashboard.py
 echo "done -> out/grail_dashboard.html"

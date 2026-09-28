@@ -3,7 +3,12 @@
   site/index.html           - full standalone document for static hosting (GitHub Pages), plus CSV downloads
 """
 import os, shutil
-data = open('out/analysis.json').read().replace('</script', '<\\/script')
+import json as _json
+_d = _json.load(open('out/analysis.json'))
+for key, fn in (('deepdive', 'out/top_tokens_deepdive.json'), ('launch', 'out/launch_effects.json'), ('clusters', 'out/clusters.json')):
+    try: _d[key] = _json.load(open(fn))
+    except FileNotFoundError: _d[key] = None
+data = _json.dumps(_d).replace('</script', '<\\/script')
 tpl = open('template.html').read().replace('__DATA__', data)
 open('out/grail_dashboard.html', 'w').write(tpl.replace('__CSV_LINKS__', '').replace('__AUTO_RELOAD__', '0'))
 os.makedirs('site', exist_ok=True)

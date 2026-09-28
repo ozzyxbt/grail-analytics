@@ -83,3 +83,4 @@ print(R[['token','launch_buy_tokens','launch_buy_by_clusters','launch_bundle_pct
 print('\nLARGEST CLUSTERS')
 print(D.drop(columns=['sample']).to_string(index=False))
 R.to_csv('out/clusters_summary.csv', index=False); D.to_csv('out/clusters_detail.csv', index=False)
+json.dump(dict(summary=json.loads(R.to_json(orient='records')), detail=json.loads(D.drop(columns=['sample']).to_json(orient='records'))), open('out/clusters.json', 'w'))

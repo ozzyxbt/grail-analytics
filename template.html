@@ -122,7 +122,7 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
   </div>
 </header>
 <nav class="toc" aria-label="Sections">
-  <a href="#overview">Overview</a><a href="#glist">GLIST</a><a href="#profit">Who made money</a><a href="#venues">Grail app vs routers</a><a href="#packs">Packs &amp; exclusive mints</a><a href="#vault">Card vaulting</a><a href="#snipers">Snipers</a><a href="#method">How it's counted</a>
+  <a href="#overview">Overview</a><a href="#glist">GLIST</a><a href="#profit">Who made money</a><a href="#venues">Grail app vs routers</a><a href="#packs">Packs &amp; exclusive mints</a><a href="#vault">Card vaulting</a><a href="#snipers">Snipers</a><a href="#launches">Launches &amp; momentum</a><a href="#toptokens">Top tokens</a><a href="#method">How it's counted</a>
 </nav>
 
 <section id="overview">
@@ -208,6 +208,27 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
   <div class="grid">
     <div class="panel c5"><h3>Snipes per token</h3><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-sniper-token"></table></div></div>
     <div class="panel c7"><h3>Tagged wallets</h3><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-sniper-rows"></table></div></div>
+  </div>
+</section>
+
+<section id="launches">
+  <div class="sec-head"><h2>Launches and momentum</h2><span class="q">Last 90 days. What each launch did to platform volume, which weekdays carry the volume, and which tokens rise when volume comes in.</span></div>
+  <div class="grid">
+    <div class="panel c8"><h3>Daily platform volume with launches</h3><p class="sub">Gold bars are launch days; hollow markers are spike days (1.5× the trailing 14-day median).</p><div class="chart tall"><canvas id="c-launch-daily"></canvas></div></div>
+    <div class="panel c4"><h3>Volume by weekday</h3><p class="sub">Average daily volume, all days vs excluding launch days and the 3 days after.</p><div class="chart tall"><canvas id="c-dow"></canvas></div></div>
+    <div class="panel c12"><h3>Launch effects</h3><p class="sub">7-day average platform volume after the launch vs the 7 days before; spillover is the same ratio excluding the new token itself.</p><div class="tbl"><table id="t-launches"></table></div></div>
+    <div class="panel c12"><h3>Tokens that rise with volume</h3><p class="sub">Average daily return on the platform\'s high-volume days (top quartile) minus low-volume days, and the average 7-day return after other tokens\' launches.</p><div class="tbl" style="max-height:420px;overflow:auto"><table id="t-tok-vol"></table></div></div>
+  </div>
+</section>
+
+<section id="toptokens">
+  <div class="sec-head"><h2>Top tokens deep-dive</h2><span class="q">The five largest tokens by market cap (gMJ excluded: almost all of its supply sits with Grail). Snipers, supply in sniper hands, top-20 holder behaviour, holder cost basis, and wallet clusters.</span></div>
+  <div class="grid">
+    <div class="panel c12"><h3>Snipers and supply</h3><p class="sub">Sniper = first buy within 5 minutes of first liquidity. Supply shares are against circulating supply and against supply held by non-Grail wallets.</p><div class="tbl"><table id="t-dd-snipers"></table></div></div>
+    <div class="panel c6"><h3>Top-20 holders: how much did they sell?</h3><p class="sub">Tokens sold ÷ tokens that reached the wallet (buys, pack redeems, transfers in).</p><div class="tbl"><table id="t-dd-top20"></table></div></div>
+    <div class="panel c6"><h3>Current holders: cost basis</h3><p class="sub">Remaining average-cost basis of wallets holding today, against the current price.</p><div class="tbl"><table id="t-dd-cost"></table></div></div>
+    <div class="panel c12"><h3>Wallet clusters (bundles)</h3><p class="sub">Wallets linked by buying in the same block through the same front-end at launch, by one wallet distributing to 2–20 sub-wallets in a single transaction, or by direct transfers (hub wallets with more than 6 counterparties ignored). Clusters of 3+ wallets. A lower bound: wallets funded from one source but never linked on-chain are not caught.</p><div class="tbl"><table id="t-clusters"></table></div></div>
+    <div class="panel c12"><h3>Largest clusters</h3><div class="tbl" style="max-height:460px;overflow:auto"><table id="t-clusters-detail"></table></div></div>
   </div>
 </section>
 
@@ -332,6 +353,25 @@ const gl_launches=[...new Set(D.grailist.flatMap(r=>r.series.split(';')))].sort(
 function filterG(){ const tg=document.getElementById('f-glist').value, la=document.getElementById('f-glist-launch').value, mn=+document.getElementById('f-glist-n').value||0, q=document.getElementById('s-glist').value.toLowerCase(); glistRows=D.grailist.filter(x=>(!tg||x.tag===tg)&&(!la||x.series.split(';').includes(la))&&(x.n_launches>=mn)&&(!q||x.wallet.includes(q))); glistT.update(glistRows); document.getElementById('n-glist').textContent=`${glistRows.length} wallets`; }
 ['f-glist','f-glist-launch','f-glist-n'].forEach(id=>document.getElementById(id).onchange=filterG); document.getElementById('s-glist').oninput=filterG; filterG();
 document.getElementById('b-copy').onclick=async()=>{ const keys=['wallet','tag','n_launches','series','packs','spent','avg_pct_sold','sold_usdc','holding_value','roi','trader_pnl','trader_volume','primary_venue','usage','first_buy_ts','sniper','sniper_tag']; const csv=[keys.join(',')].concat(glistRows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))).join('\n'); try{ await navigator.clipboard.writeText(csv); document.getElementById('b-copy').textContent='Copied'; setTimeout(()=>document.getElementById('b-copy').textContent='Copy as CSV',1500);}catch(e){ document.getElementById('n-glist').textContent='Clipboard blocked here; use the CSV download in the footer.'; } };
+// launches & momentum
+if (D.launch){ const LD=D.launch.daily, LL=D.launch.launches;
+  new Chart(document.getElementById('c-launch-daily'), {type:'bar', data:{labels:LD.map(d=>d.date), datasets:[{label:'Volume', data:LD.map(d=>d.volume), backgroundColor:LD.map(d=>d.launch.length?css('--gold'):css('--s1')), borderColor:LD.map(d=>d.spike?css('--ink'):'transparent'), borderWidth:LD.map(d=>d.spike?1.5:0), borderRadius:1}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:Object.assign({callbacks:{title:c=>{const d=LD[c[0].dataIndex]; return d.date+(d.launch.length?' · launch: '+d.launch.join(', '):'')+(d.spike?' · spike':'')}, label:c=>fmt.usd(c.parsed.y)+' · '+fmt.n(LD[c.dataIndex].traders)+' traders'}},tip)}, scales:{x:{grid:{display:false}, ticks:{maxTicksLimit:12}}, y:{type:'logarithmic', ticks:{callback:v=>fmt.usd(v)}, grid:{color:css('--grid')}, border:{display:false}}}}});
+  const DW=D.launch.dow; bar('c-dow', DW.map(d=>d.weekday.slice(0,3)), [{label:'All days', data:DW.map(d=>d.avg_volume), backgroundColor:css('--gold'), borderRadius:2},{label:'Excl. launch windows', data:DW.map(d=>d.avg_volume_excl_launch_windows), backgroundColor:css('--s1'), borderRadius:2}], {plugins:{legend:{labels:{boxWidth:10}}, tooltip:Object.assign({callbacks:{label:c=>c.dataset.label+': '+fmt.usd(c.parsed.y)+(c.datasetIndex===0?` · ${DW[c.dataIndex].spike_days} spike days · ${DW[c.dataIndex].launches} launches`:'')}},tip)}, scales:{x:{grid:{display:false}}, y:{ticks:{callback:v=>fmt.usd(v)}, grid:{color:css('--grid')}, border:{display:false}}}});
+  const rx=v=>v==null?'—':`<span class="${v>0?'pos':v<0?'neg':''}">${v>=1?(v+1).toFixed(1)+'×':(v*100).toFixed(0)+'%'}</span>`;
+  table('t-launches', [{k:'token',h:'Token',f:v=>`<b>${v}</b>`},{k:'launch',h:'Launch',f:v=>String(v).slice(0,10)},{k:'weekday',h:'Day'},{k:'launch_day_volume',h:'Launch-day volume',num:1,f:fmt.usd},{k:'traders_launch_day',h:'Traders',num:1,f:fmt.n},{k:'post_vs_pre',h:'Volume after vs before',num:1,f:rx},{k:'spillover',h:'Spillover to other tokens',num:1,f:rx},{k:'own_7d_volume',h:'Own 7-day volume',num:1,f:fmt.usd},{k:'ret_7d',h:'Token 7-day return',num:1,f:rx},{k:'ret_to_now',h:'Return to now',num:1,f:rx}], LL, {sort:'launch', dir:1});
+  table('t-tok-vol', [{k:'token',h:'Token',f:v=>`<b>${v}</b>`},{k:'avg_ret_high_vol_days',h:'Avg return, high-vol days',num:1,f:v=>fmt.pct(v*100)},{k:'avg_ret_low_vol_days',h:'Low-vol days',num:1,f:v=>fmt.pct(v*100)},{k:'diff',h:'Difference',num:1,f:v=>`<span class="${v>0?'pos':'neg'}">${(v*100).toFixed(1)} pts</span>`},{k:'pct_up_on_high_vol',h:'Up on high-vol days',num:1,f:v=>fmt.pct(v*100)},{k:'corr_platform_volume',h:'Corr. w/ platform volume',num:1,f:v=>v==null?'—':v.toFixed(2)},{k:'avg_ret_after_others_launch',h:'Avg 7d return after others\' launches',num:1,f:v=>v==null?'—':rx(v)},{k:'ret_period',h:'90-day return',num:1,f:rx},{k:'volume_period',h:'90-day volume',num:1,f:fmt.usd}], D.launch.tokens, {sort:'diff'});
+}
+// top tokens deep-dive
+if (D.deepdive){ const DD=D.deepdive, p1=v=>fmt.pct(v*100);
+  table('t-dd-snipers', [{k:'token',h:'Token',f:(v,r)=>`<b>${v}</b> <span class="tag">${r.chain}</span>`},{k:'mcap',h:'Market cap',num:1,f:fmt.usd},{k:'buyers',h:'Buyers',num:1,f:fmt.n},{k:'snipers',h:'Snipers',num:1,f:fmt.n},{k:'sniper_share_of_buyers',h:'Of buyers',num:1,f:p1},{k:'sniper_share_of_buy_volume',h:'Of buy volume',num:1,f:p1},{k:'sniper_held',h:'Snipers hold now',num:1,f:fmt.tok},{k:'sniper_held_pct_of_circ',h:'Of circulating',num:1,f:p1},{k:'sniper_held_pct_of_wallet_supply',h:'Of wallet-held supply',num:1,f:p1}], DD, {sort:'mcap'});
+  table('t-dd-top20', [{k:'token',h:'Token',f:v=>`<b>${v}</b>`},{k:'top20_pct_of_circ',h:'Top-20 share of circ.',num:1,f:p1},{k:'top20_sell_ratio',h:'Sold ÷ received',num:1,f:v=>`<span class="bar ${v<0.2?'b3':'b2'}" style="width:${Math.min(80,v*120)}px"></span>${p1(v)}`},{k:'top20_never_sold',h:'Never sold',num:1,f:v=>v+'/20'},{k:'top20_snipers',h:'Snipers in top 20',num:1}], DD, {sort:'top20_sell_ratio', dir:1});
+  table('t-dd-cost', [{k:'token',h:'Token',f:v=>`<b>${v}</b>`},{k:'holders',h:'Holders',num:1,f:fmt.n},{k:'holders_cost_total',h:'Cost basis',num:1,f:fmt.usd},{k:'holders_avg_cost',h:'Avg cost',num:1,f:(v,r)=>v==null?'—':'$'+(v<0.01?v.toPrecision(3):v.toFixed(2))},{k:'price',h:'Price',num:1,f:v=>'$'+(v<0.01?v.toPrecision(3):v.toFixed(2))},{k:'holders_unrealized',h:'Unrealized',num:1,f:fmt.sgn},{k:'holders_in_profit_pct',h:'Holders in profit',num:1,f:p1}], DD, {sort:'holders_unrealized'});
+}
+if (D.clusters){ const p1=v=>fmt.pct(v*100);
+  table('t-clusters', [{k:'token',h:'Token',f:v=>`<b>${v}</b>`},{k:'buyers',h:'Buyers',num:1,f:fmt.n},{k:'clusters',h:'Clusters',num:1},{k:'clustered_wallets',h:'Clustered wallets',num:1},{k:'clustered_pct_of_buyers',h:'Of buyers',num:1,f:p1},{k:'largest_cluster',h:'Largest',num:1},{k:'launch_bundle_pct',h:'Bundle share of launch buys',num:1,f:p1},{k:'all_buys_by_clusters_pct',h:'Of all buys',num:1,f:p1},{k:'cluster_held_pct_circ',h:'Clusters hold (circ.)',num:1,f:p1},{k:'cluster_held_pct_wallets',h:'Clusters hold (wallet supply)',num:1,f:p1}], D.clusters.summary, {sort:'launch_bundle_pct'});
+  table('t-clusters-detail', [{k:'token',h:'Token'},{k:'size',h:'Wallets',num:1},{k:'links',h:'Linked by',f:v=>String(v).split(',').map(x=>`<span class="tag">${x}</span>`).join(' ')},{k:'venues',h:'Entered via',f:v=>`<span class="note">${v||'—'}</span>`},{k:'launch_wallets',h:'In launch window',num:1},{k:'bought',h:'Bought',num:1,f:fmt.tok},{k:'sold_pct',h:'Sold',num:1,f:v=>p1(Math.min(v,1))},{k:'holds',h:'Holds now',num:1,f:fmt.tok},{k:'holds_pct_circ',h:'Of circ.',num:1,f:p1}], D.clusters.detail, {sort:'size'});
+}
 // methodology
 document.getElementById('meth').innerHTML = [
  ['Source','Every Swap, Mint and Burn event on the Grail Uniswap V3 pools on Base, the Uniswap V4 pool of tokens on Robinhood Chain (gJENSEN trades against tokenized NVDA; its volume is converted to USD with the token\'s USD price from grail.xyz), every ERC-20 Transfer of the tokens, every pack purchase and card redemption event on Grail\'s executor and vault contracts, plus the calling transaction of every swap. Fetched from a Base RPC and processed in DuckDB. Prices are the live pool prices from grail.xyz at generation time.'],
@@ -342,7 +382,9 @@ document.getElementById('meth').innerHTML = [
  ['Exclusive mints','Purchases of gated packs (LAUNCH and FOUNDER kinds) recorded by the executor\'s purchase event, matched to later card redemptions to the same wallet of the pack\'s token, then to that wallet\'s sells of the token after the redemption.'],
  ['Vaulter P&L','For each user card mint: proceeds are that wallet\'s sells of the token after the mint (pro-rated if it sold more than it minted), held value is the unsold remainder at the current pool price, mint value is the pool price at the mint block × tokens minted, and card value is Grail\'s current reserve price for that card type. Gain vs mint = proceeds + held − mint value; gain vs keeping the card = proceeds + held − card value now.'],
  ['Card vaulting','Every ERC-20 mint (Transfer from the zero address) that coincides with the reserve contract\'s backed-supply event is a physical card entering the vault; mints without that event are cancelled redemptions returning tokens and are excluded; cards = amount ÷ the reserve\'s tokens-per-card from grail.xyz/api/reserves. Mints to Grail\'s inventory contract, team wallet, deployer or other Grail-controlled addresses are Grail-vaulted; mints to anyone else are user-vaulted. Cross-checked against the registry\'s backed card count and against the reserve NFT mint recipients.'],
- ['Snipers','First buy of a token within 150 blocks (5 minutes) of the pool\'s first liquidity Mint event.'],
+ ['Snipers','First buy of a token within 5 minutes of the pool\'s first liquidity event.'],
+ ['Launch effects','Platform volume averaged over the 7 days after a launch divided by the 7 days before; spillover excludes the launched token. Spike day = volume above 1.5× the trailing 14-day median. Token-vs-volume: average daily return (last swap price of the day) on the platform\'s top-quartile volume days minus bottom-quartile days.'],
+ ['Clusters','Union-find over three on-chain links: same block + same front-end contract at launch (3+ wallets), one wallet sending the token to 2–20 wallets in a single non-swap transaction, and direct wallet-to-wallet transfers where neither side has more than 6 counterparties. Clusters of 3+ wallets are reported. Funding-source links are not available from public RPCs, so this is a lower bound.'],
  ['Grail team','The deployer, the inventory contract and the team inventory wallet are excluded from traders, holders and vaulters. Other team wallets are not identifiable on-chain and may remain.'],
 ].map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
 </script>
