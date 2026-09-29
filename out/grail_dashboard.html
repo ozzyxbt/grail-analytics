@@ -251,7 +251,6 @@ button.primary{background:var(--gold);color:#0e0f12;border-color:var(--gold);fon
 </section>
 <footer class="foot">
   <p>Independent project, not affiliated with Grail. Not financial advice. All figures come from public on-chain data. <a href="https://github.com/ozzyxbt/grail-analytics" target="_blank" rel="noopener">Source</a></p>
-  
 </footer>
 </div>
 
@@ -369,7 +368,7 @@ const glistT = table('t-glist', gcols, D.grailist, {sort:'spent'}); let glistRow
 const gl_launches=[...new Set(D.grailist.flatMap(r=>r.series.split(';')))].sort(); document.getElementById('f-glist-launch').innerHTML='<option value="">Any launch</option>'+gl_launches.map(s=>`<option>${s}</option>`).join('');
 function filterG(){ const tg=document.getElementById('f-glist').value, la=document.getElementById('f-glist-launch').value, mn=+document.getElementById('f-glist-n').value||0, q=document.getElementById('s-glist').value.toLowerCase(); glistRows=D.grailist.filter(x=>(!tg||x.tag===tg)&&(!la||x.series.split(';').includes(la))&&(x.n_launches>=mn)&&(!q||x.wallet.includes(q))); glistT.update(glistRows); document.getElementById('n-glist').textContent=`${glistRows.length} wallets`; }
 ['f-glist','f-glist-launch','f-glist-n'].forEach(id=>document.getElementById(id).onchange=filterG); document.getElementById('s-glist').oninput=filterG; filterG();
-document.getElementById('b-copy').onclick=async()=>{ const keys=['wallet','tag','n_launches','series','packs','spent','avg_pct_sold','sold_usdc','holding_value','roi','trader_pnl','trader_volume','primary_venue','usage','first_buy_ts','sniper','sniper_tag']; const csv=[keys.join(',')].concat(glistRows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))).join('\n'); try{ await navigator.clipboard.writeText(csv); document.getElementById('b-copy').textContent='Copied'; setTimeout(()=>document.getElementById('b-copy').textContent='Copy as CSV',1500);}catch(e){ document.getElementById('n-glist').textContent='Clipboard blocked here; use the CSV download in the footer.'; } };
+document.getElementById('b-copy').onclick=async()=>{ const keys=['wallet','tag','n_launches','series','packs','spent','avg_pct_sold','sold_usdc','holding_value','roi','trader_pnl','trader_volume','primary_venue','usage','first_buy_ts','sniper','sniper_tag']; const csv=[keys.join(',')].concat(glistRows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))).join('\n'); try{ await navigator.clipboard.writeText(csv); document.getElementById('b-copy').textContent='Copied'; setTimeout(()=>document.getElementById('b-copy').textContent='Copy as CSV',1500);}catch(e){ document.getElementById('n-glist').textContent='Clipboard blocked here; copy is blocked here.'; } };
 // launches & momentum
 if (D.launch){ const LD=D.launch.daily, LL=D.launch.launches;
   new Chart(document.getElementById('c-launch-daily'), {type:'bar', data:{labels:LD.map(d=>d.date), datasets:[{label:'Volume', data:LD.map(d=>d.volume), backgroundColor:LD.map(d=>d.launch.length?css('--gold'):css('--s1')), borderColor:LD.map(d=>d.spike?css('--ink'):'transparent'), borderWidth:LD.map(d=>d.spike?1.5:0), borderRadius:1}]},

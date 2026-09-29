@@ -12,9 +12,9 @@ data = _json.dumps(_d).replace('</script', '<\\/script')
 tpl = open('template.html').read().replace('__DATA__', data)
 open('out/grail_dashboard.html', 'w').write(tpl.replace('__CSV_LINKS__', '').replace('__AUTO_RELOAD__', '0'))
 os.makedirs('site', exist_ok=True)
-csvs = [f for f in sorted(os.listdir('out')) if f.endswith('.csv')]
-for f in csvs: shutil.copy(os.path.join('out', f), os.path.join('site', f))
-links = '<div class="dl">Downloads: ' + ' '.join(f'<a href="{f}" download>{f}</a>' for f in csvs) + '</div>'
+for f in os.listdir('site'):
+    if f.endswith('.csv'): os.remove(os.path.join('site', f))
+links = ''
 import subprocess, sys
 subprocess.run([sys.executable, 'og_image.py'], check=False)          # social card, regenerated with live numbers
 SITE = os.environ.get('SITE_URL', 'https://ozzyxbt.github.io/grail-analytics/').rstrip('/') + '/'
