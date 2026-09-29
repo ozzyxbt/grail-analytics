@@ -10,13 +10,13 @@ mkdir -p data/raw data/parquet out
 $PY fetch_rpc.py main $HEAD
 $PY fetch_rpc.py exec $HEAD
 $PY fetch_rpc.py reserves $HEAD
-$PY fetch_robinhood.py        # tokens on Robinhood Chain (Uniswap V4), own RPC + cursor
-$PY fetch_rh_packs.py         # Robinhood packs, redeems and launch NFT tiers
+$PY fetch_robinhood.py || echo "WARN: robinhood token fetch failed, continuing with cached data"
+$PY fetch_rh_packs.py  || echo "WARN: robinhood packs fetch failed, continuing with cached data"
 $PY decode.py
 $PY fetch_txs.py
 $PY analysis.py
-$PY topn.py 5 --exclude gMJ --include gVLAD
-$PY clusters.py gVLAD,gSPEED,gJENSEN,gELON,gVITALIK
-$PY launch_effects.py 90
+$PY topn.py 5 --exclude gMJ --include gVLAD || true
+$PY clusters.py gVLAD,gSPEED,gJENSEN,gELON,gVITALIK || true
+$PY launch_effects.py 90 || true
 $PY build_dashboard.py
 echo "done -> out/grail_dashboard.html"

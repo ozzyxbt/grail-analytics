@@ -15,7 +15,7 @@ def rpc(m, p):
         try:
             r = S.post(RPC, data=json.dumps({"jsonrpc": "2.0", "id": 1, "method": m, "params": p}), headers=H, timeout=90).json()
             if 'result' in r: return r['result']
-            if 'exceeds limit' in str(r.get('error')): raise RuntimeError('split')
+            if any(k in str(r.get('error')) for k in ('exceeds limit','timed out','spans')): raise RuntimeError('split')
         except RuntimeError: raise
         except Exception: pass
         time.sleep(1.5 + a)

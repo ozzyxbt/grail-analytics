@@ -19,8 +19,8 @@ def rpc(method, params, tries=12):
             r = S.post(RPC, data=json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}), headers=H, timeout=90).json()
             if 'result' in r: return r['result']
             msg = str(r.get('error'))
-            if 'Too Many' in msg or '429' in msg: time.sleep(1.5 + a); continue
-            raise RuntimeError(msg)
+            if 'exceeds limit' in msg or 'timed out' in msg or 'spans' in msg: raise RuntimeError(msg)   # caller splits the range
+            time.sleep(1.5 + a); continue
         except RuntimeError: raise
         except Exception: time.sleep(1.5 + a)
     raise RuntimeError('rpc gave up: ' + method)
@@ -30,7 +30,7 @@ def get_logs(flt, a, b):
     try:
         r = rpc('eth_getLogs', [dict(flt, fromBlock=hex(a), toBlock=hex(b))]); time.sleep(0.25); return r
     except RuntimeError as e:
-        if 'exceeds limit' in str(e) and b > a:
+        if b > a:
             m = (a + b) // 2; return get_logs(flt, a, m) + get_logs(flt, m + 1, b)
         raise
 
