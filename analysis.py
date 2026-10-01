@@ -232,15 +232,20 @@ print('traders', len(traders), 'bots', int(w_stats.bot.sum()), 'profitable %', r
 # ---------- snipers: first buy vs launch
 fb_ = sw[sw.side=='buy'].sort_values('block').drop_duplicates(['actor','symbol'])[['actor','symbol','block','ts','usdc','venue','tx_to','tx_from']]
 fb_ = fb_.join(tokinfo[['launch_block','first_swap_block','launch_ts','first_swap_ts']], on='symbol')
-fb_['delta_blocks'] = fb_.block - fb_.launch_block.fillna(fb_.first_swap_block)
-fb_['delta_min'] = (fb_.ts - fb_.launch_ts.fillna(fb_.first_swap_ts)) / 60      # time-based so it works on any chain's block time
-snipes = fb_[fb_.delta_min <= 5]  # within 5 minutes of first liquidity
+SNIPE_BLOCKS = 3            # first 3 blocks in which the token traded (Base, 2s blocks)
+SNIPE_SECONDS = 6           # the same wall-clock window on chains with sub-second blocks
+fb_['open_block'] = fb_.groupby('symbol').block.transform('min'); fb_['open_ts'] = fb_.groupby('symbol').ts.transform('min')
+fb_['delta_blocks'] = fb_.block - fb_.open_block
+fb_['delta_sec'] = fb_.ts - fb_.open_ts
+fb_['delta_min'] = fb_.delta_sec / 60
+_base = fb_.symbol.map(CHAIN) == 'Base'
+snipes = fb_[(_base & (fb_.delta_blocks < SNIPE_BLOCKS)) | (~_base & (fb_.delta_sec <= SNIPE_SECONDS))]
 snipes = snipes.merge(pos_df[['wallet','symbol','realized','unrealized','total','qty','first_sell_ts','n_sell','sell_usdc']], left_on=['actor','symbol'], right_on=['wallet','symbol'], how='left')
 snipes['sold_within_24h'] = (snipes.first_sell_ts.notna()) & ((snipes.first_sell_ts - snipes.ts) <= 86400)
 snipes['same_block'] = snipes.delta_blocks <= 0
 sniper_w = snipes.groupby('actor').agg(tokens_sniped=('symbol','nunique'), symbols=('symbol', lambda s: ','.join(sorted(set(s)))), snipe_spend=('usdc','sum'), pnl=('total','sum'), realized=('realized','sum'),
                                        sold_24h=('sold_within_24h','sum'), same_block=('same_block','sum'), min_delta_min=('delta_min','min'), venues=('venue', lambda s: ','.join(sorted(set(s))))).sort_values('tokens_sniped', ascending=False)
-sniper_w['tag'] = np.select([(sniper_w.tokens_sniped>=3)|(sniper_w.same_block>=2), (sniper_w.tokens_sniped>=2)|(sniper_w.same_block>=1)], ['Serial sniper','Sniper'], default='Early buyer')
+sniper_w['tag'] = np.where(sniper_w.tokens_sniped >= 3, 'Serial sniper', 'Sniper')
 
 # ---------- vaulting: every ERC-20 mint = physical card(s) entering the vault (amount / reserve multiplier). Recipient tells who vaulted.
 reserves = json.load(open('config/reserves.json'))
@@ -347,6 +352,18 @@ reserve_rows = [dict(token=r['token_symbol'], name=r['name'], cards=r['backed_su
 
 # ---------- exclusive mint cohorts (gated packs) : buyers -> redeemed -> sold
 cohort_rows, cohort_summary = [], []
+_bal = pd.concat([xf[['symbol','to','amount']].rename(columns={'to':'w'}), xf[['symbol','frm','amount']].rename(columns={'frm':'w'}).assign(amount=lambda d: -d.amount)]).groupby(['w','symbol']).amount.sum()
+# tokens parked in the pool as liquidity ("earn fees") and tokens burned to take the physical collectible are still "held", not sold
+_ns = xf[~xf.tx.isin(set(sw.tx))]
+_lp = (_ns[_ns.to.isin(POOLS)].rename(columns={'frm':'w'}).groupby(['w','symbol']).amount.sum()).sub(_ns[_ns.frm.isin(POOLS)].rename(columns={'to':'w'}).groupby(['w','symbol']).amount.sum(), fill_value=0).clip(lower=0)
+_lp = _lp.groupby(level=[0,1]).sum(); _lpd = _lp.to_dict(); _bald = _bal.to_dict()
+_phys = burn_prov[~burn_prov.outcome.str.startswith('Cancelled')].groupby(['redeemer','symbol']).cards.sum().to_dict() if len(burn_prov) else {}
+def eff_balance(w, sy):
+    burned = float(_phys.get((w, sy), 0.0)) * MULT.get(sy, 10000.0)
+    return max(float(_bald.get((w, sy), 0.0)), 0.0) + float(_lpd.get((w, sy), 0.0)) + burned
+def glist_tag(redeemed, kept):
+    if not redeemed: return 'Unredeemed'
+    return 'Holder' if kept >= 0.5 else ('Partial seller' if kept >= 0.05 else 'Flipper')
 if len(pb):
     gated = pb[pb.pack_kind.isin(['LAUNCH','FOUNDER']) | pb.gated.fillna(False)]
     for series, g in gated.groupby('pack_series'):
@@ -361,9 +378,13 @@ if len(pb):
             sells = sw[(sw.actor==b) & (sw.side=='sell') & (sw.symbol.isin(red_syms if red_syms else ([tok] if tok else []))) & (sw.ts >= (rd.ts.min() if n_red else br.first_buy))]
             sold_tokens = float(sells.tokens.sum()); sold_usdc = float(sells.usdc.sum())
             hold_val = float(pp.value.sum())
+            red_by_sym = rd.groupby('symbol').amount.sum()
+            kept_tok = {sy: min(eff_balance(b, sy), float(amt)) for sy, amt in red_by_sym.items()}
+            red_value = float(sum(amt * PRICE.get(sy, 0.0) for sy, amt in red_by_sym.items())); kept_value = float(sum(kept_tok[sy] * PRICE.get(sy, 0.0) for sy in kept_tok))
+            kept_pct = (kept_value / red_value) if red_value > 0 else ((sum(kept_tok.values()) / redeemed_amt) if redeemed_amt else 0.0)
             cohort_rows.append(dict(pack_series=series, pack_kind=br.pack_kind, token=tok or ','.join(red_syms), wallet=b, packs=int(br.packs), spent=float(br.spent), first_buy_ts=int(br.first_buy),
                 redeemed=n_red>0, n_redeemed=n_red, redeemed_tokens=redeemed_amt, first_redeem_ts=(int(rd.ts.min()) if n_red else None),
-                sold=len(sells)>0, sold_tokens=sold_tokens, sold_usdc=sold_usdc, pct_sold=(sold_tokens/redeemed_amt if redeemed_amt else 0.0),
+                sold=(n_red>0 and kept_pct < 0.95), sold_tokens=sold_tokens, sold_usdc=sold_usdc, kept_pct=kept_pct, pct_sold=((1 - kept_pct) if n_red else 0.0), red_value=red_value, kept_value=kept_value, row_tag=glist_tag(n_red>0, kept_pct),
                 first_sell_ts=(int(sells.ts.min()) if len(sells) else None), hours_to_sell=((sells.ts.min()-rd.ts.min())/3600 if (len(sells) and n_red) else None),
                 sell_venue=(sells.venue.mode().iloc[0] if len(sells) else None), holding_value=hold_val, net_usdc=sold_usdc - float(br.spent), roi=(sold_usdc + hold_val)/float(br.spent) - 1 if br.spent else None,
                 sniper=b in set(sniper_w.index), grail_app_user=bool(w_stats.is_grail_app.get(b, False)) or True))
@@ -372,7 +393,7 @@ if len(pb):
         for series, g in cdf.groupby('pack_series'):
             cohort_summary.append(dict(pack_series=series, pack_kind=g.pack_kind.iloc[0], token=g.token.iloc[0], buyers=len(g), packs=int(g.packs.sum()), revenue=float(g.spent.sum()),
                 redeemed_pct=float(g.redeemed.mean()), sold_pct=float(g.sold.mean()), sold_of_redeemed_pct=float(g[g.redeemed].sold.mean()) if g.redeemed.any() else 0.0,
-                dumped_pct=float((g.pct_sold>=0.9).mean()), median_hours_to_sell=float(g.hours_to_sell.dropna().median()) if g.hours_to_sell.notna().any() else None,
+                dumped_pct=float((g.row_tag=='Flipper').mean()), holder_pct=float((g.row_tag=='Holder').mean()), partial_pct=float((g.row_tag=='Partial seller').mean()), median_hours_to_sell=float(g.hours_to_sell.dropna().median()) if g.hours_to_sell.notna().any() else None,
                 sold_usdc=float(g.sold_usdc.sum()), holding_value=float(g.holding_value.sum()), profitable_pct=float((g.roi.dropna()>0).mean()) if g.roi.notna().any() else None,
                 sniper_pct=float(g.sniper.mean())))
 else:
@@ -432,7 +453,7 @@ if os.path.exists('data/parquet/nft_tiers_rh.parquet'):
         _m['to'] = _m.to.str.lower(); _m = _m.merge(_t[['collection','name','tokens_per_card']], on='collection', how='left')
         _w = _m.groupby('to').agg(draws=('token_id','count'), tiers=('name', lambda s_: ' · '.join(f"{k}×{v}" for k, v in s_.value_counts().items())), tokens=('tokens_per_card','sum')).reset_index().rename(columns={'to':'wallet'}).sort_values('tokens', ascending=False)
         out['nft_pulls'] = q(_w, ['wallet','draws','tiers','tokens'])
-out['cohort_rows'] = q(cdf.sort_values(['pack_series','spent'], ascending=[True,False]), ['pack_series','pack_kind','token','wallet','packs','spent','redeemed','redeemed_tokens','sold','pct_sold','sold_usdc','hours_to_sell','sell_venue','holding_value','roi','sniper']) if len(cdf) else []
+out['cohort_rows'] = q(cdf.sort_values(['pack_series','spent'], ascending=[True,False]), ['pack_series','pack_kind','token','wallet','packs','spent','redeemed','redeemed_tokens','sold','pct_sold','kept_pct','row_tag','sold_usdc','hours_to_sell','sell_venue','holding_value','roi','sniper']) if len(cdf) else []
 # redeem timing distribution by hours to sell for launch cohorts
 if len(cdf) and cdf.hours_to_sell.notna().any():
     hb=[0,1,6,24,72,168,720,1e9]; hl=['<1h','1-6h','6-24h','1-3d','3-7d','1-4w','>4w']
@@ -471,15 +492,15 @@ gl = []
 if len(cdf):
     for w, g in cdf.groupby('wallet'):
         ws = w_stats.loc[w] if w in w_stats.index else None
-        gl.append(dict(wallet=w, n_launches=int(g.pack_series.nunique()), first_buy_ts=int(g.first_buy_ts.min()), roi=(float((g.sold_usdc.sum()+g.holding_value.sum())/g.spent.sum()-1) if g.spent.sum() > 0 else None), packs=int(g.packs.sum()), series=';'.join(sorted(set(g.pack_series))), spent=float(g.spent.sum()), redeemed_any=bool(g.redeemed.any()), sold_any=bool(g.sold.any()), avg_pct_sold=float(g.pct_sold.mean()),
+        gl.append(dict(wallet=w, n_launches=int(g.pack_series.nunique()), first_buy_ts=int(g.first_buy_ts.min()), roi=(float((g.sold_usdc.sum()+g.holding_value.sum())/g.spent.sum()-1) if g.spent.sum() > 0 else None), packs=int(g.packs.sum()), series=';'.join(sorted(set(g.pack_series))), spent=float(g.spent.sum()), redeemed_any=bool(g.redeemed.any()), sold_any=bool(g.sold.any()), avg_pct_sold=float(1 - (g.kept_value.sum()/g.red_value.sum())) if g.red_value.sum() > 0 else 0.0, kept_pct=float(g.kept_value.sum()/g.red_value.sum()) if g.red_value.sum() > 0 else 0.0,
             sold_usdc=float(g.sold_usdc.sum()), holding_value=float(g.holding_value.sum()), sniper=bool(g.sniper.any()), sniper_tag=(sniper_w.tag.get(w) if w in sniper_w.index else ''),
             trader_volume=float(ws.volume) if ws is not None else 0.0, trader_pnl=float(ws.total) if ws is not None else 0.0, primary_venue=(ws.primary_venue if ws is not None else 'No swaps'), usage=(ws.usage if ws is not None else 'No swaps'),
-            tag=('Flipper' if (g.pct_sold>=0.9).any() else ('Partial seller' if g.sold.any() else ('Holder' if g.redeemed.any() else 'Unredeemed')))))
+            tag=glist_tag(bool(g.redeemed.any()), (float(g.kept_value.sum()/g.red_value.sum()) if g.red_value.sum() > 0 else (float(g[g.redeemed].kept_pct.mean()) if g.redeemed.any() else 0.0)))))
 out['grailist'] = sorted(gl, key=lambda r: -r['spent'])
 _glp = pd.DataFrame(gl)
 if len(_glp):
     out['glist_launch_hist'] = [dict(launches=int(k), wallets=int(v)) for k, v in _glp.n_launches.value_counts().sort_index().items()]
-    _c = cdf.copy(); _c['row_tag'] = np.where(~_c.redeemed, 'Unredeemed', np.where(_c.pct_sold >= 0.9, 'Flipper', np.where(_c.sold, 'Partial seller', 'Holder')))
+    _c = cdf.copy()
     _order = _c.groupby('pack_series').first_buy_ts.min().sort_values().index
     _t = _c.groupby(['pack_series', 'row_tag']).size().unstack(fill_value=0).reindex(_order)
     out['glist_by_launch'] = dict(launches=list(_t.index), series={k: [int(x) for x in _t[k]] for k in ['Flipper', 'Partial seller', 'Holder', 'Unredeemed'] if k in _t.columns})
