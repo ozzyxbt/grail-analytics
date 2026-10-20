@@ -21,7 +21,7 @@ elif JOB == 'reserves':
 else:
     FILTERS = [dict(address=["0x4491ac59d1e6a5d2e15a8048c2de34199e8de8da", "0x2cb51d6e53ba3e983a6a50d2247931c96f9d7358", "0x94df02cc6338e6b38f60a655ea893ea0c1c2961f"])]
     OUTS = ['data/raw/logs_executor.jsonl']; cur = 'data/raw/exec.cursor'
-RNG = 2000; PER = max(1, 10 // len(FILTERS))
+RNG = int(os.environ.get('RNG', 500)); PER = max(1, 10 // len(FILTERS))   # mainnet.base.org caps eth_getLogs at 500 blocks (was 2000)
 S = requests.Session()
 def rpc(calls):
     for attempt in range(12):
@@ -32,7 +32,7 @@ def rpc(calls):
             if errs: raise RuntimeError(str(errs[0]))
             return sorted(j, key=lambda x: x['id'])
         except RuntimeError as e:
-            if 'too large' in str(e): raise
+            if any(k in str(e) for k in ('too large','limited to','range','timed out')): raise
             time.sleep(2 + 3*attempt)
         except Exception as e:
             time.sleep(2 + 3*attempt)
@@ -43,7 +43,7 @@ def fetch(a, b):
     try:
         return [x['result'] for x in rpc(calls)]
     except RuntimeError as e:
-        if 'too large' in str(e) and b > a:
+        if b > a:
             m = (a + b) // 2; print('split', a, b, flush=True)
             l1 = fetch(a, m); l2 = fetch(m+1, b)
             return [x + y for x, y in zip(l1, l2)]
@@ -60,7 +60,6 @@ while fb <= HEAD:
         res = rpc(calls); per_filter = [[] for _ in FILTERS]
         for x in res: per_filter[x['id'] % len(FILTERS)] += x['result']
     except RuntimeError as e:
-        if 'too large' not in str(e): raise
         per_filter = [[] for _ in FILTERS]
         for (a, b) in ranges:
             r = fetch(a, b)
