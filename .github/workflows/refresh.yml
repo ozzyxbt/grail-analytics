@@ -58,22 +58,19 @@ jobs:
         uses: actions/deploy-pages@v4
       - name: Open or update the failure issue after 3 consecutive failures
         if: failure()
-        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           recent=$(gh run list --workflow=refresh.yml --limit 3 --json conclusion -q '[.[] | select(.conclusion=="failure")] | length')
-          if [ "$recent" -lt 2 ]; then echo "fewer than 3 consecutive failures (incl. this one), not opening an issue"; exit 0; fi
-          tail_log=$(grep -vE '^\s*$' run.log | tail -25 | sed 's/`/'"'"'/g')
-          body="The data refresh has failed on 3+ consecutive runs. Latest: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-Last lines of the pipeline log:
-\`\`\`
-${tail_log}
-\`\`\`
-This issue is updated on every further failure and closed automatically by the next successful run."
+          if [ "$recent" -lt 2 ]; then echo "fewer than 3 consecutive failures, not opening an issue"; exit 0; fi
+          { printf 'The data refresh has failed on 3 or more consecutive runs. Latest run: %s\n\nLast lines of the pipeline log:\n\n```\n' "$RUN_URL"; grep -vE '^[[:space:]]*$' run.log | tail -25; printf '```\n\nThis issue is updated on every further failure and closed automatically by the next successful run.\n'; } > issue_body.md
           num=$(gh issue list --label refresh-failed --state open --json number -q '.[0].number')
-          if [ -n "$num" ]; then gh issue comment "$num" --body "$body"; else gh label create refresh-failed --color B60205 --description "Automated data refresh is failing" 2>/dev/null || true; gh issue create --title "Data refresh is failing" --label refresh-failed --body "$body"; fi
+          if [ -n "$num" ]; then gh issue comment "$num" --body-file issue_body.md; else gh label create refresh-failed --color B60205 --description "Automated data refresh is failing" 2>/dev/null || true; gh issue create --title "Data refresh is failing" --label refresh-failed --body-file issue_body.md; fi
       - name: Close the failure issue after a successful run
         if: success()
-        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          for n in $(gh issue list --label refresh-failed --state open --json number -q '.[].number'); do gh issue close "$n" --comment "Refresh succeeded again: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"; done
+          for n in $(gh issue list --label refresh-failed --state open --json number -q '.[].number'); do gh issue close "$n" --comment "Refresh succeeded again: $RUN_URL"; done
